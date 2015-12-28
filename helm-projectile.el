@@ -750,7 +750,7 @@ DIR is the project root, if not set then current directory is used"
                                       (projectile-ignored-directories))
                                 (-map (lambda (path)
                                         (concat "--ignore-file=match:" (shell-quote-argument path)))
-                                      (projectile-ignored-files))) " "))
+                                      (append (projectile-ignored-files) (projectile-patterns-to-ignore)))) " "))
           (helm-ack-grep-executable (cond
                                      ((executable-find "ack") "ack")
                                      ((executable-find "ack-grep") "ack-grep")
