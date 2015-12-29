@@ -3,7 +3,7 @@
 ;; Copyright (C) 2011-2015 Bozhidar Batsov
 
 ;; Author: Bozhidar Batsov
-;; URL: https://github.com/bbatsov/projectile
+;; URL: https://github.com/bbatsov/helm-projectile
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
 ;; Version: 0.13.0
