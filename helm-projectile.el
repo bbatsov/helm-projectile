@@ -674,8 +674,9 @@ If it is nil, or ack/ack-grep not found then use default grep command."
                                       (if (and projectile-use-git-grep (eq (projectile-project-vcs) 'git))
                                           "git --no-pager grep --no-color -n -e %p -- %f"
                                         "grep -a -r %e -n%cH -e %p %f .")))
-         (helm-grep-default-recurse-command helm-grep-default-command)
-         (helm-source-grep
+         (helm-grep-default-recurse-command helm-grep-default-command))
+
+    (setq helm-source-grep
           (helm-build-async-source
               (capitalize (helm-grep-command t))
             :header-name (lambda (name)
@@ -701,7 +702,7 @@ If it is nil, or ack/ack-grep not found then use default grep command."
                      "Find file other window" 'helm-grep-other-window)
             :persistent-action 'helm-grep-persistent-action
             :persistent-help "Jump to line (`C-u' Record in mark ring)"
-            :requires-pattern 2)))
+            :requires-pattern 2))
     (helm
      :sources 'helm-source-grep
      :input (if (region-active-p)
