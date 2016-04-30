@@ -811,6 +811,7 @@ DIR is the project root, if not set then current directory is used"
     "Find recently visited file in project."
     (helm-projectile-recentf)))
 
+;;;###autoload
 (defun helm-projectile-toggle (toggle)
   "Toggle Helm version of Projectile commands."
   (if (> toggle 0)
