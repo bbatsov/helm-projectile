@@ -720,14 +720,16 @@ If it is nil, or ack/ack-grep not found then use default grep command."
 (defun helm-projectile-on ()
   "Turn on helm-projectile key bindings."
   (interactive)
-  (message "Turn on helm-projectile key bindings")
+  (when (called-interactively-p 'any)
+    (message "Turn on helm-projectile key bindings"))
   (helm-projectile-toggle 1))
 
 ;;;###autoload
 (defun helm-projectile-off ()
   "Turn off helm-projectile key bindings."
   (interactive)
-  (message "Turn off helm-projectile key bindings")
+  (when (called-interactively-p 'any)
+    (message "Turn off helm-projectile key bindings"))
   (helm-projectile-toggle -1))
 
 ;;;###autoload
