@@ -826,9 +826,9 @@ DIR is the project root, if not set then current directory is used"
         (define-key projectile-command-map [remap projectile-switch-project] #'helm-projectile-switch-project)
         (define-key projectile-command-map [remap projectile-recentf] #'helm-projectile-recentf)
         (define-key projectile-command-map [remap projectile-switch-to-buffer] #'helm-projectile-switch-to-buffer)
-        (define-key projectile-command-map [remap projectile-grep] #'helm-projectile-grep)
-        (define-key projectile-command-map [remap projectile-ack] #'helm-projectile-ack)
-        (define-key projectile-command-map [remap projectile-ag] #'helm-projectile-ag)
+        (define-key projectile-command-map "sg" #'helm-projectile-grep)
+        (define-key projectile-command-map "sa" #'helm-projectile-ack)
+        (define-key projectile-command-map "ss" #'helm-projectile-ag)
         (helm-projectile-commander-bindings))
     (progn
       (when (eq projectile-switch-project-action #'helm-projectile-find-file)
@@ -841,8 +841,9 @@ DIR is the project root, if not set then current directory is used"
       (define-key projectile-command-map [remap projectile-switch-project] nil)
       (define-key projectile-command-map [remap projectile-recentf] nil)
       (define-key projectile-command-map [remap projectile-switch-to-buffer] nil)
-      (define-key projectile-command-map [remap projectile-grep] nil)
-      (define-key projectile-command-map [remap projectile-ag] nil)
+      (define-key projectile-command-map "sg" #'projectile-grep)
+      (define-key projectile-command-map "sa" nil)
+      (define-key projectile-command-map "ss" #'projectile-ag)
       (projectile-commander-bindings))))
 
 ;;;###autoload
