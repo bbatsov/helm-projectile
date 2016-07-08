@@ -5,11 +5,14 @@
 
 ## Helm Projectile
 
-Projectile can be integrated with [Helm](https://github.com/emacs-helm/helm) via
-`helm-source-projectile-projects`, `helm-source-projectile-files-list`,
-`helm-source-projectile-buffers-list` and `helm-source-projectile-recentf-list`
-sources (available in `helm-projectile.el`). There is also an example function
-for calling Helm with the Projectile file source. You can call it like this:
+[Projectile](https://github.com/bbatsov/projectile) can be integrated
+with [Helm](https://github.com/emacs-helm/helm) via
+`helm-source-projectile-projects`,
+`helm-source-projectile-files-list`,
+`helm-source-projectile-buffers-list` and
+`helm-source-projectile-recentf-list` sources (available in
+`helm-projectile.el`). There is also an example function for calling
+Helm with the Projectile file source. You can call it like this:
 
 ```
 M-x helm-projectile
@@ -86,30 +89,36 @@ these are the supported commands:
 * Replace Helm equivalent commands in `projectile-commander`
 * A virtual directory manager that is unique to Helm Projectile
 
-Why should you use these commands compared with the normal Projectile commands, even
-if the normal commands use `helm` as `projectile-completion-system`? The answer is,
-Helm specific commands give more useful features. For example, `helm-projectile-switch-project`
-allows opening a project in Dired, Magit or Eshell. `helm-projectile-find-file` reuses actions in
-`helm-find-files` (which is plenty) and able to open multiple files. Another reason is that in a large
-source tree, helm-projectile could be slow because it has to open all available sources.
+Why should you use these commands compared with the normal Projectile
+commands, even if the normal commands use `helm` as
+`projectile-completion-system`? The answer is, Helm specific commands
+give more useful features. For example,
+`helm-projectile-switch-project` allows opening a project in Dired,
+Magit or Eshell. `helm-projectile-find-file` reuses actions in
+`helm-find-files` (which is plenty) and able to open multiple
+files. Another reason is that in a large source tree, helm-projectile
+could be slow because it has to open all available sources.
 
-If you want to use these commands, you have to activate it to replace the normal Projectile
-commands:
+If you want to use these commands, you have to activate it to replace
+the normal Projectile commands:
 
-```lisp
+```el
 ;; (setq helm-projectile-fuzzy-match nil)
 (require 'helm-projectile)
 (helm-projectile-on)
 ```
 
-If you already activate helm-projectile key bindings and you don't like it, you can turn it off
-and use the normal Projectile bindings with command `helm-projectile-off`. Similarly, if you want to
-disable fuzzy matching in Helm Projectile (it is enabled by default), you must set `helm-projectile-fuzzy-match`
-to nil before loading `helm-projectile`.
+If you already activate helm-projectile key bindings and you don't
+like it, you can turn it off and use the normal Projectile bindings
+with command `helm-projectile-off`. Similarly, if you want to disable
+fuzzy matching in Helm Projectile (it is enabled by default), you must
+set `helm-projectile-fuzzy-match` to nil before loading
+`helm-projectile`.
 
-To fully learn Helm Projectile and see what it is capable of, you should refer to this guide:
+To fully learn Helm Projectile and see what it is capable of, you
+should refer to this guide:
 [Exploring large projects with Projectile and Helm Projectile](http://tuhdo.github.io/helm-projectile.html).
 
-Obviously you need to have Helm installed for this to work :-)
+Obviously you need to have Helm installed for this to work. :-)
 
 ![Helm-Projectile Screenshot](screenshots/helm-projectile.png)
