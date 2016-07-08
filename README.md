@@ -1,3 +1,8 @@
+[![License GPL 3][badge-license]](http://www.gnu.org/licenses/gpl-3.0.txt)
+[![MELPA](http://melpa.org/packages/helm-projectile-badge.svg)](http://melpa.org/#/helm-projectile)
+[![MELPA Stable](http://stable.melpa.org/packages/helm-projectile-badge.svg)](http://stable.melpa.org/#/helm-projectile)
+[![Gratipay Team](https://img.shields.io/gratipay/team/projectile.svg?maxAge=2592000)](https://gratipay.com/projectile/)
+
 ## Helm Projectile
 
 Projectile can be integrated with [Helm](https://github.com/emacs-helm/helm) via
