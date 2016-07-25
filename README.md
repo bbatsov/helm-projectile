@@ -50,6 +50,11 @@ helm-projectile is naturally part of the
 user - helm-projectile is already properly configured and ready for
 action.
 
+### Debian and Ubuntu
+
+Users of Debian 9 or later or Ubuntu 16.04 or later may `apt-get
+install elpa-helm-projectile`.
+
 ## Usage
 
 For those who prefer helm to ido, the command `helm-projectile-switch-project`
