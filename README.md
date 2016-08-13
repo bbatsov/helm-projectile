@@ -127,3 +127,5 @@ should refer to this guide:
 Obviously you need to have Helm installed for this to work. :-)
 
 ![Helm-Projectile Screenshot](screenshots/helm-projectile.png)
+
+[badge-license]: https://img.shields.io/badge/license-GPLv3-blue.svg
