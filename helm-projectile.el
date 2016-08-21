@@ -654,7 +654,7 @@ Other file extensions can be customized with the variable `projectile-other-file
                   :prompt (projectile-prepend-project-name "Find other file: ")))))
     (error "No other file found")))
 
-(defvar helm-projectile-grep-or-ack-actions
+(defcustom helm-projectile-grep-or-ack-actions
   '("Find file" helm-grep-action
     "Find file other frame" helm-grep-other-frame
     (lambda () (and (locate-library "elscreen")
@@ -663,7 +663,8 @@ Other file extensions can be customized with the variable `projectile-other-file
     "Save results in grep buffer" helm-grep-save-results
     "Find file other window" helm-grep-other-window)
   "Available actions for `helm-projectile-grep-or-ack'.
-The contents of this list are passed as the arguments to `helm-make-actions'")
+The contents of this list are passed as the arguments to `helm-make-actions'."
+  :group 'helm-projectile)
 
 (defun helm-projectile-grep-or-ack (&optional dir use-ack-p ack-ignored-pattern ack-executable)
   "Perform helm-grep at project root.
