@@ -635,26 +635,27 @@ With a prefix ARG invalidates the cache first."
 With FLEX-MATCHING, match any file that contains the base name of current file.
 Other file extensions can be customized with the variable `projectile-other-file-alist'."
   (interactive "P")
-  (-if-let (other-files (projectile-get-other-files (buffer-file-name)
-                                                    (projectile-current-project-files)
-                                                    flex-matching))
-      (if (= (length other-files) 1)
-          (find-file (expand-file-name (car other-files) (projectile-project-root)))
-        (progn
-          (let* ((helm-ff-transformer-show-only-basename nil))
-            (helm :sources (helm-build-in-buffer-source "Projectile other files"
-                             :data other-files
-                             :coerce 'helm-projectile-coerce-file
-                             :keymap (let ((map (copy-keymap helm-find-files-map)))
-                                       (define-key map (kbd "<left>") 'helm-previous-source)
-                                       (define-key map (kbd "<right>") 'helm-next-source)
-                                       map)
-                             :help-message helm-ff-help-message
-                             :mode-line helm-read-file-name-mode-line-string
-                             :action helm-projectile-file-actions)
-                  :buffer "*helm projectile*"
-                  :prompt (projectile-prepend-project-name "Find other file: ")))))
-    (error "No other file found")))
+  (let ((other-files (projectile-get-other-files (buffer-file-name)
+                                                 (projectile-current-project-files)
+                                                 flex-matching)))
+    (if other-files
+        (if (= (length other-files) 1)
+            (find-file (expand-file-name (car other-files) (projectile-project-root)))
+          (progn
+            (let* ((helm-ff-transformer-show-only-basename nil))
+              (helm :sources (helm-build-in-buffer-source "Projectile other files"
+                               :data other-files
+                               :coerce 'helm-projectile-coerce-file
+                               :keymap (let ((map (copy-keymap helm-find-files-map)))
+                                         (define-key map (kbd "<left>") 'helm-previous-source)
+                                         (define-key map (kbd "<right>") 'helm-next-source)
+                                         map)
+                               :help-message helm-ff-help-message
+                               :mode-line helm-read-file-name-mode-line-string
+                               :action helm-projectile-file-actions)
+                    :buffer "*helm projectile*"
+                    :prompt (projectile-prepend-project-name "Find other file: ")))))
+      (error "No other file found"))))
 
 (defun helm-projectile-grep-or-ack (&optional dir use-ack-p ack-ignored-pattern ack-executable)
   "Perform helm-grep at project root.
