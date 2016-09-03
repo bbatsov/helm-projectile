@@ -7,7 +7,7 @@
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
 ;; Version: 0.14.0
-;; Package-Requires: ((helm "1.7.7") (projectile "0.14.0") (dash "1.5.0") (cl-lib "0.3"))
+;; Package-Requires: ((helm "1.7.7") (projectile "0.14.0") (cl-lib "0.3"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -262,11 +262,12 @@ It is there because Helm requires it."
   "Get all current Dired buffers."
   (mapcar (lambda (b)
             (with-current-buffer b (buffer-name)))
-          (-filter (lambda (b)
-                     (with-current-buffer b
-                       (and (eq major-mode 'dired-mode)
-                            (buffer-name))))
-                   (buffer-list))))
+          (cl-remove-if-not
+           (lambda (b)
+             (with-current-buffer b
+               (and (eq major-mode 'dired-mode)
+                    (buffer-name))))
+           (buffer-list))))
 
 (defvar helm-projectile-virtual-dired-remote-enable nil
   "Enable virtual Dired manager on remote host.
@@ -279,8 +280,9 @@ CANDIDATE is the selected file, but choose the marked files if available."
            (not helm-projectile-virtual-dired-remote-enable))
       (message "Virtual Dired manager is disabled in remote host. Enable with %s."
                (propertize "helm-projectile-virtual-dired-remote-enable" 'face 'font-lock-keyword-face))
-    (let ((files (-filter (lambda (f)
-                            (not (string= f "")))
+    (let ((files (cl-remove-if-not
+                  (lambda (f)
+                    (not (string= f "")))
                           (mapcar (lambda (file)
                                     (replace-regexp-in-string (projectile-project-root) "" file))
                                   (helm-marked-candidates :with-wildcard t))))
@@ -633,26 +635,27 @@ With a prefix ARG invalidates the cache first."
 With FLEX-MATCHING, match any file that contains the base name of current file.
 Other file extensions can be customized with the variable `projectile-other-file-alist'."
   (interactive "P")
-  (-if-let (other-files (projectile-get-other-files (buffer-file-name)
-                                                    (projectile-current-project-files)
-                                                    flex-matching))
-      (if (= (length other-files) 1)
-          (find-file (expand-file-name (car other-files) (projectile-project-root)))
-        (progn
-          (let* ((helm-ff-transformer-show-only-basename nil))
-            (helm :sources (helm-build-in-buffer-source "Projectile other files"
-                             :data other-files
-                             :coerce 'helm-projectile-coerce-file
-                             :keymap (let ((map (copy-keymap helm-find-files-map)))
-                                       (define-key map (kbd "<left>") 'helm-previous-source)
-                                       (define-key map (kbd "<right>") 'helm-next-source)
-                                       map)
-                             :help-message helm-ff-help-message
-                             :mode-line helm-read-file-name-mode-line-string
-                             :action helm-projectile-file-actions)
-                  :buffer "*helm projectile*"
-                  :prompt (projectile-prepend-project-name "Find other file: ")))))
-    (error "No other file found")))
+  (let ((other-files (projectile-get-other-files (buffer-file-name)
+                                                 (projectile-current-project-files)
+                                                 flex-matching)))
+    (if other-files
+        (if (= (length other-files) 1)
+            (find-file (expand-file-name (car other-files) (projectile-project-root)))
+          (progn
+            (let* ((helm-ff-transformer-show-only-basename nil))
+              (helm :sources (helm-build-in-buffer-source "Projectile other files"
+                               :data other-files
+                               :coerce 'helm-projectile-coerce-file
+                               :keymap (let ((map (copy-keymap helm-find-files-map)))
+                                         (define-key map (kbd "<left>") 'helm-previous-source)
+                                         (define-key map (kbd "<right>") 'helm-next-source)
+                                         map)
+                               :help-message helm-ff-help-message
+                               :mode-line helm-read-file-name-mode-line-string
+                               :action helm-projectile-file-actions)
+                    :buffer "*helm projectile*"
+                    :prompt (projectile-prepend-project-name "Find other file: ")))))
+      (error "No other file found"))))
 
 (defun helm-projectile-grep-or-ack (&optional dir use-ack-p ack-ignored-pattern ack-executable)
   "Perform helm-grep at project root.
@@ -667,10 +670,10 @@ If it is nil, or ack/ack-grep not found then use default grep command."
          (follow (and helm-follow-mode-persistent
                       (assoc-default 'follow helm-source-grep)))
          (helm-grep-in-recurse t)
-         (helm-grep-ignored-files (-union (projectile-ignored-files-rel)  grep-find-ignored-files))
+         (helm-grep-ignored-files (cl-union (projectile-ignored-files-rel)  grep-find-ignored-files))
          (helm-grep-ignored-directories
-          (-union (-map 'directory-file-name (projectile-ignored-directories-rel))
-                  grep-find-ignored-directories))
+          (cl-union (mapcar 'directory-file-name (projectile-ignored-directories-rel))
+                    grep-find-ignored-directories))
          (helm-grep-default-command (if use-ack-p
                                         (concat ack-executable " -H --no-group --no-color " ack-ignored-pattern " %p %f")
                                       (if (and projectile-use-git-grep (eq (projectile-project-vcs) 'git))
@@ -748,12 +751,12 @@ DIR is the project root, if not set then current directory is used"
   (let ((project-root (or dir (projectile-project-root) (error "You're not in a project"))))
     (let ((ack-ignored (mapconcat
                         'identity
-                        (-union (-map (lambda (path)
-                                        (concat "--ignore-dir=" (file-name-nondirectory (directory-file-name path))))
-                                      (projectile-ignored-directories))
-                                (-map (lambda (path)
-                                        (concat "--ignore-file=match:" (shell-quote-argument path)))
-                                      (append (projectile-ignored-files) (projectile-patterns-to-ignore)))) " "))
+                        (cl-union (mapcar (lambda (path)
+                                            (concat "--ignore-dir=" (file-name-nondirectory (directory-file-name path))))
+                                          (projectile-ignored-directories))
+                                  (mapcar (lambda (path)
+                                            (concat "--ignore-file=match:" (shell-quote-argument path)))
+                                          (append (projectile-ignored-files) (projectile-patterns-to-ignore)))) " "))
           (helm-ack-grep-executable (cond
                                      ((executable-find "ack") "ack")
                                      ((executable-find "ack-grep") "ack-grep")
@@ -767,8 +770,8 @@ DIR is the project root, if not set then current directory is used"
   (interactive (if current-prefix-arg (list (read-string "option: " "" 'helm-ag--extra-options-history))))
   (if (require 'helm-ag nil  'noerror)
       (if (projectile-project-p)
-          (let* ((grep-find-ignored-files (-union (projectile-ignored-files-rel) grep-find-ignored-files))
-                 (grep-find-ignored-directories (-union (projectile-ignored-directories-rel) grep-find-ignored-directories))
+          (let* ((grep-find-ignored-files (cl-union (projectile-ignored-files-rel) grep-find-ignored-files))
+                 (grep-find-ignored-directories (cl-union (projectile-ignored-directories-rel) grep-find-ignored-directories))
                  (ignored (mapconcat (lambda (i)
                                        (concat "--ignore " i))
                                      (append grep-find-ignored-files grep-find-ignored-directories)
