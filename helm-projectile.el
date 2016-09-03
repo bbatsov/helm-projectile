@@ -669,10 +669,10 @@ If it is nil, or ack/ack-grep not found then use default grep command."
          (follow (and helm-follow-mode-persistent
                       (assoc-default 'follow helm-source-grep)))
          (helm-grep-in-recurse t)
-         (helm-grep-ignored-files (-union (projectile-ignored-files-rel)  grep-find-ignored-files))
+         (helm-grep-ignored-files (cl-union (projectile-ignored-files-rel)  grep-find-ignored-files))
          (helm-grep-ignored-directories
-          (-union (mapcar 'directory-file-name (projectile-ignored-directories-rel))
-                  grep-find-ignored-directories))
+          (cl-union (mapcar 'directory-file-name (projectile-ignored-directories-rel))
+                    grep-find-ignored-directories))
          (helm-grep-default-command (if use-ack-p
                                         (concat ack-executable " -H --no-group --no-color " ack-ignored-pattern " %p %f")
                                       (if (and projectile-use-git-grep (eq (projectile-project-vcs) 'git))
@@ -750,12 +750,12 @@ DIR is the project root, if not set then current directory is used"
   (let ((project-root (or dir (projectile-project-root) (error "You're not in a project"))))
     (let ((ack-ignored (mapconcat
                         'identity
-                        (-union (mapcar (lambda (path)
-                                          (concat "--ignore-dir=" (file-name-nondirectory (directory-file-name path))))
-                                        (projectile-ignored-directories))
-                                (mapcar (lambda (path)
-                                          (concat "--ignore-file=match:" (shell-quote-argument path)))
-                                        (append (projectile-ignored-files) (projectile-patterns-to-ignore)))) " "))
+                        (cl-union (mapcar (lambda (path)
+                                            (concat "--ignore-dir=" (file-name-nondirectory (directory-file-name path))))
+                                          (projectile-ignored-directories))
+                                  (mapcar (lambda (path)
+                                            (concat "--ignore-file=match:" (shell-quote-argument path)))
+                                          (append (projectile-ignored-files) (projectile-patterns-to-ignore)))) " "))
           (helm-ack-grep-executable (cond
                                      ((executable-find "ack") "ack")
                                      ((executable-find "ack-grep") "ack-grep")
@@ -769,8 +769,8 @@ DIR is the project root, if not set then current directory is used"
   (interactive (if current-prefix-arg (list (read-string "option: " "" 'helm-ag--extra-options-history))))
   (if (require 'helm-ag nil  'noerror)
       (if (projectile-project-p)
-          (let* ((grep-find-ignored-files (-union (projectile-ignored-files-rel) grep-find-ignored-files))
-                 (grep-find-ignored-directories (-union (projectile-ignored-directories-rel) grep-find-ignored-directories))
+          (let* ((grep-find-ignored-files (cl-union (projectile-ignored-files-rel) grep-find-ignored-files))
+                 (grep-find-ignored-directories (cl-union (projectile-ignored-directories-rel) grep-find-ignored-directories))
                  (ignored (mapconcat (lambda (i)
                                        (concat "--ignore " i))
                                      (append grep-find-ignored-files grep-find-ignored-directories)
