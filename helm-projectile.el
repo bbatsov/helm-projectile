@@ -368,68 +368,11 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
                                             (list candidate))))
           (rename-buffer dired-buffer-name))))))
 
-
-(defun helm-projectile-find-file-or-marked (candidate)
-  "Modified version of `helm-find-file-or-marked'. Runs `projectile-find-file-hook'."
-  (let ((marked (helm-marked-candidates :with-wildcard t))
-        (url-p (and ffap-url-regexp    ; we should have only one candidate.
-                    (string-match ffap-url-regexp candidate)))
-        (ffap-newfile-prompt helm-ff-newfile-prompt-p)
-        (find-file-wildcards nil)
-        (make-dir-fn
-         (lambda (dir &optional helm-ff)
-           (when (or (not confirm-nonexistent-file-or-buffer)
-                     (y-or-n-p (format "Create directory `%s'? " dir)))
-             (let ((dirfname (directory-file-name dir)))
-               (if (file-exists-p dirfname)
-                   (error
-                    "Mkdir: Unable to create directory `%s': file exists."
-                    (helm-basename dirfname))
-                 (make-directory dir 'parent)))
-             (when helm-ff
-               ;; Allow having this new dir in history
-               ;; to be able to retrieve it immediately
-               ;; if we want to e.g copy a file from somewhere in it.
-               (setq helm-ff-default-directory
-                     (file-name-as-directory dir))
-               (push helm-ff-default-directory helm-ff-history))
-             (or (and helm-ff
-                      (helm-find-files-1 dir)
-                      (run-hooks 'projectile-find-file-hook))
-                 t))))
-        (helm--reading-passwd-or-string t))
-    (if (cdr marked)
-        (if helm-current-prefix-arg
-            (progn
-              (dired-simultaneous-find-file marked nil)
-              (mapc (lambda (file)
-                      (with-current-buffer (get-file-buffer file)
-                        (run-hooks 'projectile-find-file-hook)))
-                    marked))
-          (mapc (lambda (file)
-                  (let ((filebuffer (find-file-noselect file)))
-                    (with-current-buffer filebuffer
-                      (run-hooks 'projectile-find-file-hook))))
-                (cdr marked)) 
-          (find-file (car marked))
-          (run-hooks 'projectile-find-file-hook))
-      (if (and (not (file-exists-p candidate))
-               (not url-p)
-               (string-match "/$" candidate))
-          ;; A a non--existing filename ending with /
-          ;; Create a directory and jump to it.
-          (funcall make-dir-fn candidate 'helm-ff)
-        ;; A non--existing filename NOT ending with / or
-        ;; an existing filename, create or jump to it.
-        ;; If the basedir of candidate doesn't exists,
-        ;; ask for creating it.
-        (let ((dir (and (not url-p) (helm-basedir candidate))))
-          (find-file-at-point
-           (cond ((and dir (file-directory-p dir))
-                  (substitute-in-file-name candidate))
-                 (url-p candidate)
-                 ((funcall make-dir-fn dir) candidate)))
-          (run-hooks 'projectile-find-file-hook))))))
+(advice-add 'helm-find-file-or-marked :after
+            (lambda ()
+              "Run `projectile-find-file-hook' if using projectile."
+              (when (and projectile-mode (projectile-project-p))
+                (run-hooks 'projectile-find-file-hook))))
 
 (defvar helm-projectile-find-file-map
   (let ((map (copy-keymap helm-find-files-map)))
@@ -457,7 +400,6 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
    '(helm-ff-etags-select     . helm-projectile-ff-etags-select-action)
    '(helm-find-files-eshell-command-on-file
      . helm-projectile-find-files-eshell-command-on-file-action)
-   '(helm-find-file-or-marked . helm-projectile-find-file-or-marked)
    ;; Change action descriptions
    '(helm-find-file-as-root . "Find file as root `C-c r'")
    ;; New actions
