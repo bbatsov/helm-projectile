@@ -262,11 +262,12 @@ It is there because Helm requires it."
   "Get all current Dired buffers."
   (mapcar (lambda (b)
             (with-current-buffer b (buffer-name)))
-          (-filter (lambda (b)
-                     (with-current-buffer b
-                       (and (eq major-mode 'dired-mode)
-                            (buffer-name))))
-                   (buffer-list))))
+          (cl-remove-if-not
+           (lambda (b)
+             (with-current-buffer b
+               (and (eq major-mode 'dired-mode)
+                    (buffer-name))))
+           (buffer-list))))
 
 (defvar helm-projectile-virtual-dired-remote-enable nil
   "Enable virtual Dired manager on remote host.
@@ -279,8 +280,9 @@ CANDIDATE is the selected file, but choose the marked files if available."
            (not helm-projectile-virtual-dired-remote-enable))
       (message "Virtual Dired manager is disabled in remote host. Enable with %s."
                (propertize "helm-projectile-virtual-dired-remote-enable" 'face 'font-lock-keyword-face))
-    (let ((files (-filter (lambda (f)
-                            (not (string= f "")))
+    (let ((files (cl-remove-if-not
+                  (lambda (f)
+                    (not (string= f "")))
                           (mapcar (lambda (file)
                                     (replace-regexp-in-string (projectile-project-root) "" file))
                                   (helm-marked-candidates :with-wildcard t))))
