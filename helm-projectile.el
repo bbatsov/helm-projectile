@@ -654,18 +654,25 @@ Other file extensions can be customized with the variable `projectile-other-file
                   :prompt (projectile-prepend-project-name "Find other file: ")))))
     (error "No other file found")))
 
-(defun helm-projectile-grep-or-ack (&optional dir use-ack-p ack-ignored-pattern ack-executable no-input)
+(defcustom helm-projectile-set-input-automatically t
+  "If non-nil, attempt to set search input automatically.
+Automatic input selection uses the region (if there is an active
+region), otherwise it uses the current symbol at point (if there
+is one). Applies to `helm-projectile-grep' and
+`helm-projectile-ack' only. If the `helm-ag' package is
+installed, then automatic input behavior for `helm-projectile-ag'
+can be customized using `helm-ag-insert-at-point'."
+  :group 'helm-projectile
+  :type 'boolean)
+
+(defun helm-projectile-grep-or-ack (&optional dir use-ack-p ack-ignored-pattern ack-executable)
   "Perform helm-grep at project root.
 DIR directory where to search
 USE-ACK-P indicates whether to use ack or not.
 ACK-IGNORED-PATTERN is a file regex to exclude from searching.
 ACK-EXECUTABLE is the actual ack binary name.
 It is usually \"ack\" or \"ack-grep\".
-If it is nil, or ack/ack-grep not found then use default grep command.
-NO-INPUT, if set to a non-nil value, means do not set search
-input automatically: i.e. use neither the symbol at point nor the
-contents of the active region.
-"
+If it is nil, or ack/ack-grep not found then use default grep command."
   (let* ((default-directory (or dir (projectile-project-root)))
          (helm-ff-default-directory default-directory)
          (follow (and helm-follow-mode-persistent
@@ -709,7 +716,7 @@ contents of the active region.
             :requires-pattern 2))
     (helm
      :sources 'helm-source-grep
-     :input (when (not no-input)
+     :input (when helm-projectile-set-input-automatically
               (if (region-active-p)
                   (buffer-substring-no-properties (region-beginning) (region-end))
                 (thing-at-point 'symbol)))
@@ -736,16 +743,16 @@ contents of the active region.
   (helm-projectile-toggle -1))
 
 ;;;###autoload
-(defun helm-projectile-grep (&optional dir no-input)
+(defun helm-projectile-grep (&optional dir)
   "Helm version of `projectile-grep'.
 DIR is the project root, if not set then current directory is used"
   (interactive)
   (let ((project-root (or dir (projectile-project-root) (error "You're not in a project"))))
-    (funcall 'run-with-timer 0.01 nil
-             #'helm-projectile-grep-or-ack project-root nil nil nil no-input)))
+    (funcall'run-with-timer 0.01 nil
+                              #'helm-projectile-grep-or-ack project-root nil)))
 
 ;;;###autoload
-(defun helm-projectile-ack (&optional dir no-input)
+(defun helm-projectile-ack (&optional dir)
   "Helm version of projectile-ack."
   (interactive)
   (let ((project-root (or dir (projectile-project-root) (error "You're not in a project"))))
@@ -762,7 +769,7 @@ DIR is the project root, if not set then current directory is used"
                                      ((executable-find "ack-grep") "ack-grep")
                                      (t (error "ack or ack-grep is not available.")))))
       (funcall 'run-with-timer 0.01 nil
-               #'helm-projectile-grep-or-ack project-root t ack-ignored helm-ack-grep-executable no-input))))
+               #'helm-projectile-grep-or-ack project-root t ack-ignored helm-ack-grep-executable))))
 
 ;;;###autoload
 (defun helm-projectile-ag (&optional options)
