@@ -746,8 +746,8 @@ If it is nil, or ack/ack-grep not found then use default grep command."
 DIR is the project root, if not set then current directory is used"
   (interactive)
   (let ((project-root (or dir (projectile-project-root) (error "You're not in a project"))))
-    (funcall'run-with-timer 0.01 nil
-                              #'helm-projectile-grep-or-ack project-root nil)))
+    (funcall 'run-with-timer 0.01 nil
+             #'helm-projectile-grep-or-ack project-root nil)))
 
 ;;;###autoload
 (defun helm-projectile-ack (&optional dir)
