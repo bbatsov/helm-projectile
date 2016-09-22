@@ -657,6 +657,18 @@ Other file extensions can be customized with the variable `projectile-other-file
                     :prompt (projectile-prepend-project-name "Find other file: ")))))
       (error "No other file found"))))
 
+(defcustom helm-projectile-grep-or-ack-actions
+  '("Find file" helm-grep-action
+    "Find file other frame" helm-grep-other-frame
+    (lambda () (and (locate-library "elscreen")
+               "Find file in Elscreen"))
+    helm-grep-jump-elscreen
+    "Save results in grep buffer" helm-grep-save-results
+    "Find file other window" helm-grep-other-window)
+  "Available actions for `helm-projectile-grep-or-ack'.
+The contents of this list are passed as the arguments to `helm-make-actions'."
+  :group 'helm-projectile)
+
 (defun helm-projectile-grep-or-ack (&optional dir use-ack-p ack-ignored-pattern ack-executable)
   "Perform helm-grep at project root.
 DIR directory where to search
@@ -697,14 +709,7 @@ If it is nil, or ack/ack-grep not found then use default grep command."
             ;; to make it available in further resuming.
             :keymap helm-grep-map
             :history 'helm-grep-history
-            :action (helm-make-actions
-                     "Find file" 'helm-grep-action
-                     "Find file other frame" 'helm-grep-other-frame
-                     (lambda () (and (locate-library "elscreen")
-                                     "Find file in Elscreen"))
-                     'helm-grep-jump-elscreen
-                     "Save results in grep buffer" 'helm-grep-save-results
-                     "Find file other window" 'helm-grep-other-window)
+            :action (apply #'helm-make-actions helm-projectile-grep-or-ack-actions)
             :persistent-action 'helm-grep-persistent-action
             :persistent-help "Jump to line (`C-u' Record in mark ring)"
             :requires-pattern 2))
