@@ -221,6 +221,58 @@ It is there because Helm requires it."
               ("Remove project(s) from project list `M-D'" . helm-projectile-remove-known-project)))
   "Helm source for known projectile projects.")
 
+(defvar helm-projectile-dirty-projects-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map helm-map)
+    (helm-projectile-define-key map
+      (kbd "C-d") #'dired
+      (kbd "M-o") #'(lambda (project)
+                      (let ((projectile-completion-system 'helm))
+                        (projectile-switch-project-by-name project)))
+      (kbd "M-e") #'helm-projectile-switch-to-eshell
+      (kbd "C-s") #'helm-projectile-grep
+      (kbd "M-c") #'helm-projectile-compile-project
+      (kbd "M-t") #'helm-projectile-test-project
+      (kbd "M-r") #'helm-projectile-run-project
+      (kbd "M-D") #'helm-projectile-remove-known-project)
+    map)
+  "Mapping for dirty projectile projects.")
+
+(defvar helm-source-projectile-dirty-projects
+  (helm-build-sync-source "Projectile dirty projects"
+    :candidates 'helm-projectile-get-dirty-projects
+    :fuzzy-match helm-projectile-fuzzy-match
+    :keymap helm-projectile-dirty-projects-map
+    :mode-line helm-read-file-name-mode-line-string
+    :action '(("Open project root in vc-dir or magit" . helm-projectile-vc)
+              ("Switch to project `M-o'" .
+               (lambda (project)
+                 (let ((projectile-completion-system 'helm))
+                   (projectile-switch-project-by-name project))))
+              ("Open Dired in project's directory `C-d'" . dired)
+              ("Switch to Eshell `M-e'" . helm-projectile-switch-to-eshell)
+              ("Grep in projects `C-s'" . helm-projectile-grep)
+              ("Compile project `M-c'. With C-u, new compile command"
+               . helm-projectile-compile-project)))
+    "Helm source for dirty version controlled projectile projects.")
+
+(defun helm-projectile-get-dirty-projects ()
+  "Return dirty version controlled known projects as an alist
+   to have a nice display in Helm."
+  (message "Checking for dirty known projects...")
+  (let* ((status (projectile-check-vcs-status-of-known-projects))
+         (proj-dir (loop for stat in status
+                         collect (car stat)))
+         (status-display (loop for stat in status collect
+                               (propertize (format "[%s]" (mapconcat 'identity (car (cdr stat)) ", ")) 'face 'helm-match)))
+         (max-status-display-length (loop for sd in status-display
+                                          maximize (length sd)))
+         (status-display (loop for sd in status-display collect
+                               (format "%s%s    " sd (make-string (- max-status-display-length (length sd)) ? ))))
+         (full-display (cl-mapcar 'concat status-display proj-dir))
+         (helm-list (cl-pairlis full-display proj-dir)))
+     helm-list))
+
 (define-key helm-etags-map (kbd "C-c p f")
   (lambda ()
     (interactive)
@@ -620,6 +672,7 @@ With a prefix ARG invalidates the cache first."
 (helm-projectile-command "find-dir" helm-source-projectile-directories-and-dired-list "Find dir: ")
 (helm-projectile-command "recentf" 'helm-source-projectile-recentf-list "Recently visited file: ")
 (helm-projectile-command "switch-to-buffer" 'helm-source-projectile-buffers-list "Switch to buffer: ")
+(helm-projectile-command "browse-dirty-projects" 'helm-source-projectile-dirty-projects "Select a project: " t)
 
 ;;;###autoload
 (defun helm-projectile-find-file-dwim ()
@@ -837,7 +890,11 @@ DIR is the project root, if not set then current directory is used"
 
   (def-projectile-commander-method ?e
     "Find recently visited file in project."
-    (helm-projectile-recentf)))
+    (helm-projectile-recentf))
+
+  (def-projectile-commander-method ?v
+    "Find dirty projects."
+    (helm-projectile-browse-dirty-projects)))
 
 ;;;###autoload
 (defun helm-projectile-toggle (toggle)
@@ -857,6 +914,7 @@ DIR is the project root, if not set then current directory is used"
         (define-key projectile-mode-map [remap projectile-grep] #'helm-projectile-grep)
         (define-key projectile-mode-map [remap projectile-ack] #'helm-projectile-ack)
         (define-key projectile-mode-map [remap projectile-ag] #'helm-projectile-ag)
+        (define-key projectile-mode-map [remap projectile-browse-dirty-projects] #'helm-projectile-browse-dirty-projects)
         (helm-projectile-commander-bindings))
     (progn
       (when (eq projectile-switch-project-action #'helm-projectile-find-file)
@@ -871,6 +929,7 @@ DIR is the project root, if not set then current directory is used"
       (define-key projectile-mode-map [remap projectile-switch-to-buffer] nil)
       (define-key projectile-mode-map [remap projectile-grep] nil)
       (define-key projectile-mode-map [remap projectile-ag] nil)
+      (define-key projectile-mode-map [remap projectile-browse-dirty-projects] nil)
       (projectile-commander-bindings))))
 
 ;;;###autoload
