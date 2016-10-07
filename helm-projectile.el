@@ -669,6 +669,17 @@ Other file extensions can be customized with the variable `projectile-other-file
 The contents of this list are passed as the arguments to `helm-make-actions'."
   :group 'helm-projectile)
 
+(defcustom helm-projectile-set-input-automatically t
+  "If non-nil, attempt to set search input automatically.
+Automatic input selection uses the region (if there is an active
+region), otherwise it uses the current symbol at point (if there
+is one). Applies to `helm-projectile-grep' and
+`helm-projectile-ack' only. If the `helm-ag' package is
+installed, then automatic input behavior for `helm-projectile-ag'
+can be customized using `helm-ag-insert-at-point'."
+  :group 'helm-projectile
+  :type 'boolean)
+
 (defun helm-projectile-grep-or-ack (&optional dir use-ack-p ack-ignored-pattern ack-executable)
   "Perform helm-grep at project root.
 DIR directory where to search
@@ -715,9 +726,10 @@ If it is nil, or ack/ack-grep not found then use default grep command."
             :requires-pattern 2))
     (helm
      :sources 'helm-source-grep
-     :input (if (region-active-p)
-                (buffer-substring-no-properties (region-beginning) (region-end))
-              (thing-at-point 'symbol))
+     :input (when helm-projectile-set-input-automatically
+              (if (region-active-p)
+                  (buffer-substring-no-properties (region-beginning) (region-end))
+                (thing-at-point 'symbol)))
      :buffer (format "*helm %s*" (if use-ack-p
                                      "ack"
                                    "grep"))
