@@ -370,6 +370,12 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
                                             (list candidate))))
           (rename-buffer dired-buffer-name))))))
 
+(advice-add 'helm-find-file-or-marked :after
+            (lambda ()
+              "Run `projectile-find-file-hook' if using projectile."
+              (when (and projectile-mode (projectile-project-p))
+                (run-hooks 'projectile-find-file-hook))))
+
 (defvar helm-projectile-find-file-map
   (let ((map (copy-keymap helm-find-files-map)))
     (helm-projectile-define-key map
