@@ -283,9 +283,9 @@ CANDIDATE is the selected file, but choose the marked files if available."
     (let ((files (cl-remove-if-not
                   (lambda (f)
                     (not (string= f "")))
-                          (mapcar (lambda (file)
-                                    (replace-regexp-in-string (projectile-project-root) "" file))
-                                  (helm-marked-candidates :with-wildcard t))))
+                  (mapcar (lambda (file)
+                            (replace-regexp-in-string (projectile-project-root) "" file))
+                          (helm-marked-candidates :with-wildcard t))))
           (new-name (completing-read "Select or enter a new buffer name: "
                                      (helm-projectile-all-dired-buffers)))
           (helm--reading-passwd-or-string t)
@@ -371,7 +371,7 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
           (rename-buffer dired-buffer-name))))))
 
 (advice-add 'helm-find-file-or-marked :after
-            (lambda ()
+            (lambda (orig-fun &rest args)
               "Run `projectile-find-file-hook' if using projectile."
               (when (and projectile-mode (projectile-project-p))
                 (run-hooks 'projectile-find-file-hook))))
@@ -667,7 +667,7 @@ Other file extensions can be customized with the variable `projectile-other-file
   '("Find file" helm-grep-action
     "Find file other frame" helm-grep-other-frame
     (lambda () (and (locate-library "elscreen")
-               "Find file in Elscreen"))
+                    "Find file in Elscreen"))
     helm-grep-jump-elscreen
     "Save results in grep buffer" helm-grep-save-results
     "Find file other window" helm-grep-other-window)
