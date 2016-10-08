@@ -783,7 +783,7 @@ DIR is the project root, if not set then current directory is used"
           (helm-ack-grep-executable (cond
                                      ((executable-find "ack") "ack")
                                      ((executable-find "ack-grep") "ack-grep")
-                                     (t (error "ack or ack-grep is not available.")))))
+                                     (t (error "ack or ack-grep is not available")))))
       (funcall 'run-with-timer 0.01 nil
                #'helm-projectile-grep-or-ack project-root t ack-ignored helm-ack-grep-executable))))
 
