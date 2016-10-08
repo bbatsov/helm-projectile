@@ -115,7 +115,7 @@ If an INSTRUCTION is of the form \(FUNCTION . DESCRIPTION\), and
 if an action with function name FUNCTION exists in the original
 Helm action list, the action in the Helm action list, with
 function name FUNCTION will change it's description to
-DESCRIPTION. Otherwise, (FUNCTION . DESCRIPTION) will be added to
+DESCRIPTION.  Otherwise, (FUNCTION . DESCRIPTION) will be added to
 the action list.
 
 Please check out how `helm-projectile-file-actions' is defined
