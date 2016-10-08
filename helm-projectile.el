@@ -59,7 +59,7 @@
   "Helm support for projectile."
   :prefix "helm-projectile-"
   :group 'projectile
-  :link `(url-link :tag "helm-projectile homepage" "https://github.com/bbatsov/projectile"))
+  :link `(url-link :tag "GitHub" "https://github.com/bbatsov/helm-projectile"))
 
 (defvar helm-projectile-current-project-root)
 
