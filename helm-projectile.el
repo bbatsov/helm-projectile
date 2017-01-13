@@ -198,6 +198,21 @@ It is there because Helm requires it."
     map)
   "Mapping for known projectile projects.")
 
+(defcustom helm-source-projectile-projects-actions
+  (helm-make-actions
+   "Switch to project" (lambda (project)
+                         (let ((projectile-completion-system 'helm))
+                           (projectile-switch-project-by-name project)))
+   "Open Dired in project's directory `C-d'" #'dired
+   "Open project root in vc-dir or magit `M-g'" #'helm-projectile-vc
+   "Switch to Eshell `M-e'" #'helm-projectile-switch-to-eshell
+   "Grep in projects `C-s'" #'helm-projectile-grep
+   "Compile project `M-c'. With C-u, new compile command" #'helm-projectile-compile-project
+   "Remove project(s) from project list `M-D'" #'helm-projectile-remove-known-project)
+  "Actions for `helm-source-projectile-projects'."
+  :group 'helm-projectile
+  :type '(alist :key-type string :value-type function))
+
 (defvar helm-source-projectile-projects
   (helm-build-in-buffer-source "Projectile projects"
     :data (lambda ()
@@ -208,17 +223,7 @@ It is there because Helm requires it."
     :fuzzy-match helm-projectile-fuzzy-match
     :keymap helm-projectile-projects-map
     :mode-line helm-read-file-name-mode-line-string
-    :action '(("Switch to project" .
-               (lambda (project)
-                 (let ((projectile-completion-system 'helm))
-                   (projectile-switch-project-by-name project))))
-              ("Open Dired in project's directory `C-d'" . dired)
-              ("Open project root in vc-dir or magit `M-g'" . helm-projectile-vc)
-              ("Switch to Eshell `M-e'" . helm-projectile-switch-to-eshell)
-              ("Grep in projects `C-s'" . helm-projectile-grep)
-              ("Compile project `M-c'. With C-u, new compile command"
-               . helm-projectile-compile-project)
-              ("Remove project(s) from project list `M-D'" . helm-projectile-remove-known-project)))
+    :action 'helm-source-projectile-projects-actions)
   "Helm source for known projectile projects.")
 
 (define-key helm-etags-map (kbd "C-c p f")
