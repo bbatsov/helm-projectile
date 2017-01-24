@@ -71,8 +71,9 @@ This needs to be set before loading helm-projectile."
   :type 'boolean)
 
 (defun helm-projectile-coerce-file (candidate)
-  (with-current-buffer (helm-candidate-buffer)
-    (expand-file-name candidate (projectile-project-root))))
+  (let ((helm-projectile-project-root (projectile-project-root)))
+      (with-current-buffer (helm-candidate-buffer)
+        (expand-file-name candidate helm-projectile-project-root))))
 
 (defmacro helm-projectile-define-key (keymap key def &rest bindings)
   "In KEYMAP, define key sequence KEY1 as DEF1, KEY2 as DEF2 ..."
