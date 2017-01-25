@@ -283,13 +283,24 @@ It is there because Helm requires it."
   "Persistent action for file-related functionality.
 
 Previews the contents of a file in a temporary buffer."
-  (switch-to-buffer (get-buffer-create " *helm-projectile persistent*"))
-  (fundamental-mode)
-  (erase-buffer)
-  (insert-file-contents candidate)
-  (let ((buffer-file-name candidate))
-    (set-auto-mode)
-    (font-lock-ensure)))
+  (let ((buf (get-buffer-create " *helm-projectile persistent*")))
+    (cl-flet ((preview (candidate)
+                       (switch-to-buffer buf)
+                       (setq buffer-read-only nil)
+                       (erase-buffer)
+                       (insert-file-contents candidate)
+                       (let ((buffer-file-name candidate))
+                         (set-auto-mode))
+                       (font-lock-ensure)
+                       (setq buffer-read-only t)))
+      (if (and (helm-attr 'previewp)
+               (string= candidate (helm-attr 'current-candidate)))
+          (progn
+            (kill-buffer buf)
+            (helm-attrset 'previewp nil))
+        (preview candidate)
+        (helm-attrset 'previewp t)))
+    (helm-attrset 'current-candidate candidate)))
 
 (defun helm-projectile-find-files-eshell-command-on-file-action (_candidate)
   (interactive)
