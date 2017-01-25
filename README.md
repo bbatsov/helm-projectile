@@ -3,6 +3,11 @@
 [![MELPA Stable](http://stable.melpa.org/packages/helm-projectile-badge.svg)](http://stable.melpa.org/#/helm-projectile)
 [![Gratipay Team](https://img.shields.io/gratipay/team/projectile.svg?maxAge=2592000)](https://gratipay.com/projectile/)
 
+**The project is looking for more maintainers. I (Bozhidar) don't use Helm myself and
+don't have much time for the project, so I would definitely appreciate some help with it.**
+
+Contact me via e-mail or twitter if you'd like to become a co-maintainer.
+
 ## Helm Projectile
 
 [Projectile](https://github.com/bbatsov/projectile) can be integrated
