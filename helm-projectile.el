@@ -500,7 +500,8 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
     :help-message 'helm-ff-help-message
     :mode-line helm-read-file-name-mode-line-string
     :action helm-projectile-file-actions
-    :persistent-action #'helm-projectile-file-persistent-action)
+    :persistent-action #'helm-projectile-file-persistent-action
+    :persistent-help "Preview file")
   "Helm source definition for Projectile files.")
 
 (defvar helm-source-projectile-files-in-all-projects-list
@@ -515,7 +516,7 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
     :mode-line helm-read-file-name-mode-line-string
     :action helm-projectile-file-actions
     :persistent-action #'helm-projectile-file-persistent-action
-    )
+    :persistent-help "Preview file")
   "Helm source definition for all Projectile files in all projects.")
 
 (defvar helm-projectile-dired-file-actions
@@ -633,7 +634,8 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
     :help-message 'helm-ff-help-message
     :mode-line helm-read-file-name-mode-line-string
     :action helm-projectile-file-actions
-    :persistent-action #'helm-projectile-file-persistent-action)
+    :persistent-action #'helm-projectile-file-persistent-action
+    :persistent-help "Preview file")
   "Helm source definition for recent files in current project.")
 
 (defvar helm-source-projectile-files-and-dired-list
@@ -709,7 +711,8 @@ With a prefix ARG invalidates the cache first."
                        :help-message helm-ff-help-message
                        :mode-line helm-read-file-name-mode-line-string
                        :action helm-projectile-file-actions
-                       :persistent-action #'helm-projectile-file-persistent-action)
+                       :persistent-action #'helm-projectile-file-persistent-action
+                       :persistent-help "Preview file")
             :buffer "*helm projectile*"
             :prompt (projectile-prepend-project-name "Find file: ")))))
 
@@ -737,7 +740,8 @@ Other file extensions can be customized with the variable `projectile-other-file
                                :help-message helm-ff-help-message
                                :mode-line helm-read-file-name-mode-line-string
                                :action helm-projectile-file-actions
-                               :persistent-action #'helm-projectile-file-persistent-action)
+                               :persistent-action #'helm-projectile-file-persistent-action
+                               :persistent-help "Preview file")
                     :buffer "*helm projectile*"
                     :prompt (projectile-prepend-project-name "Find other file: ")))))
       (error "No other file found"))))
