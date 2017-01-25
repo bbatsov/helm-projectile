@@ -262,17 +262,17 @@ It is there because Helm requires it."
    to have a nice display in Helm."
   (message "Checking for dirty known projects...")
   (let* ((status (projectile-check-vcs-status-of-known-projects))
-         (proj-dir (loop for stat in status
-                         collect (car stat)))
-         (status-display (loop for stat in status collect
-                               (propertize (format "[%s]" (mapconcat 'identity (car (cdr stat)) ", ")) 'face 'helm-match)))
-         (max-status-display-length (loop for sd in status-display
-                                          maximize (length sd)))
-         (status-display (loop for sd in status-display collect
-                               (format "%s%s    " sd (make-string (- max-status-display-length (length sd)) ? ))))
+         (proj-dir (cl-loop for stat in status
+                            collect (car stat)))
+         (status-display (cl-loop for stat in status collect
+                                  (propertize (format "[%s]" (mapconcat 'identity (car (cdr stat)) ", ")) 'face 'helm-match)))
+         (max-status-display-length (cl-loop for sd in status-display
+                                             maximize (length sd)))
+         (status-display (cl-loop for sd in status-display collect
+                                  (format "%s%s    " sd (make-string (- max-status-display-length (length sd)) ? ))))
          (full-display (cl-mapcar 'concat status-display proj-dir))
          (helm-list (cl-pairlis full-display proj-dir)))
-     helm-list))
+    helm-list))
 
 (define-key helm-etags-map (kbd "C-c p f")
   (lambda ()
