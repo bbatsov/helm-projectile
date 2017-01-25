@@ -1,4 +1,4 @@
-;;; helm-projectile.el --- Helm integration for Projectile
+;;; helm-projectile.el --- Helm integration for Projectile         -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2011-2016 Bozhidar Batsov
 
