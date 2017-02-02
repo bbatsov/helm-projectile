@@ -922,7 +922,7 @@ DIR is the project root, if not set then current directory is used"
     "Find recently visited file in project."
     (helm-projectile-recentf))
 
-  (def-projectile-commander-method ?v
+  (def-projectile-commander-method ?V
     "Find dirty projects."
     (helm-projectile-browse-dirty-projects)))
 
