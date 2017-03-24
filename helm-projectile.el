@@ -63,6 +63,11 @@
 
 (defvar helm-projectile-current-project-root)
 
+(defcustom helm-projectile-truncate-lines nil
+  "Truncate lines in helm projectile commands when non--nil."
+  :group 'helm-projectile
+  :type 'boolean)
+
 ;;;###autoload
 (defcustom helm-projectile-fuzzy-match t
   "Enable fuzzy matching for Helm Projectile commands.
@@ -675,6 +680,7 @@ With a prefix ARG invalidates the cache first."
            (helm-boring-file-regexp-list nil))
        (helm :sources ,source
              :buffer "*helm projectile*"
+             :truncate-lines helm-projectile-truncate-lines
              :prompt (projectile-prepend-project-name ,prompt)))))
 
 (helm-projectile-command "switch-project" 'helm-source-projectile-projects "Switch to project: " t)
@@ -714,6 +720,7 @@ With a prefix ARG invalidates the cache first."
                        :persistent-action #'helm-projectile-file-persistent-action
                        :persistent-help "Preview file")
             :buffer "*helm projectile*"
+            :truncate-lines helm-projectile-truncate-lines
             :prompt (projectile-prepend-project-name "Find file: ")))))
 
 ;;;###autoload
@@ -743,6 +750,7 @@ Other file extensions can be customized with the variable `projectile-other-file
                                :persistent-action #'helm-projectile-file-persistent-action
                                :persistent-help "Preview file")
                     :buffer "*helm projectile*"
+                    :truncate-lines helm-projectile-truncate-lines
                     :prompt (projectile-prepend-project-name "Find other file: ")))))
       (error "No other file found"))))
 
@@ -825,7 +833,7 @@ If it is nil, or ack/ack-grep not found then use default grep command."
      :default-directory default-directory
      :keymap helm-grep-map
      :history 'helm-grep-history
-     :truncate-lines t)))
+     :truncate-lines helm-projectile-truncate-lines)))
 
 ;;;###autoload
 (defun helm-projectile-on ()
@@ -974,6 +982,7 @@ If invoked outside of a project, displays a list of known projects to jump."
   (let ((helm-ff-transformer-show-only-basename nil))
     (helm :sources helm-projectile-sources-list
           :buffer "*helm projectile*"
+          :truncate-lines helm-projectile-truncate-lines
           :prompt (projectile-prepend-project-name (if (projectile-project-p)
                                                        "pattern: "
                                                      "Switch to project: ")))))
