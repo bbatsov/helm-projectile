@@ -64,7 +64,12 @@
 (defvar helm-projectile-current-project-root)
 
 (defcustom helm-projectile-truncate-lines nil
-  "Truncate lines in helm projectile commands when non--nil."
+  "Truncate lines in helm projectile commands when non--nil.
+
+Some helm-projectile commands have similar behavior with existing
+Helms. In these cases their respective custom var for truncation
+of lines will be honored. E.g. `helm-buffers-truncate-lines'
+dictates the truncation in `helm-projectile-switch-to-buffer'."
   :group 'helm-projectile
   :type 'boolean)
 
