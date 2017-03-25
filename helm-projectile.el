@@ -659,13 +659,14 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
   "Default sources for `helm-projectile'."
   :group 'helm-projectile)
 
-(defmacro helm-projectile-command (command source prompt &optional not-require-root)
+(defmacro helm-projectile-command (command source prompt &optional not-require-root truncate-lines-var)
   "Template for generic helm-projectile commands.
 COMMAND is a command name to be appended with \"helm-projectile\" prefix.
 SOURCE is a Helm source that should be Projectile specific.
 PROMPT is a string for displaying as a prompt.
 NOT-REQUIRE-ROOT specifies the command doesn't need to be used in a
 project root."
+  (unless truncate-lines-var (setq truncate-lines-var 'helm-projectile-truncate-lines))
   `(defun ,(intern (concat "helm-projectile-" command)) (&optional arg)
      "Use projectile with Helm for finding files in project
 
@@ -680,7 +681,7 @@ With a prefix ARG invalidates the cache first."
            (helm-boring-file-regexp-list nil))
        (helm :sources ,source
              :buffer "*helm projectile*"
-             :truncate-lines helm-projectile-truncate-lines
+             :truncate-lines ,truncate-lines-var
              :prompt (projectile-prepend-project-name ,prompt)))))
 
 (helm-projectile-command "switch-project" 'helm-source-projectile-projects "Switch to project: " t)
@@ -688,7 +689,7 @@ With a prefix ARG invalidates the cache first."
 (helm-projectile-command "find-file-in-known-projects" 'helm-source-projectile-files-in-all-projects-list "Find file in projects: " t)
 (helm-projectile-command "find-dir" helm-source-projectile-directories-and-dired-list "Find dir: ")
 (helm-projectile-command "recentf" 'helm-source-projectile-recentf-list "Recently visited file: ")
-(helm-projectile-command "switch-to-buffer" 'helm-source-projectile-buffers-list "Switch to buffer: ")
+(helm-projectile-command "switch-to-buffer" 'helm-source-projectile-buffers-list "Switch to buffer: " nil helm-buffers-truncate-lines)
 (helm-projectile-command "browse-dirty-projects" 'helm-source-projectile-dirty-projects "Select a project: " t)
 
 (defun helm-projectile--files-display-real (files root)
@@ -833,7 +834,7 @@ If it is nil, or ack/ack-grep not found then use default grep command."
      :default-directory default-directory
      :keymap helm-grep-map
      :history 'helm-grep-history
-     :truncate-lines helm-projectile-truncate-lines)))
+     :truncate-lines helm-grep-truncate-lines)))
 
 ;;;###autoload
 (defun helm-projectile-on ()
