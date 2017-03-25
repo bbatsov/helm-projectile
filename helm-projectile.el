@@ -665,7 +665,9 @@ COMMAND is a command name to be appended with \"helm-projectile\" prefix.
 SOURCE is a Helm source that should be Projectile specific.
 PROMPT is a string for displaying as a prompt.
 NOT-REQUIRE-ROOT specifies the command doesn't need to be used in a
-project root."
+project root.
+TRUNCATE-LINES-VAR is the symbol used dictate truncation of lines.
+Defaults is `helm-projectile-truncate-lines'."
   (unless truncate-lines-var (setq truncate-lines-var 'helm-projectile-truncate-lines))
   `(defun ,(intern (concat "helm-projectile-" command)) (&optional arg)
      "Use projectile with Helm for finding files in project
