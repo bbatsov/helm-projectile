@@ -890,7 +890,7 @@ DIR is the project root, if not set then current directory is used"
 (defun helm-projectile-ag (&optional options)
   "Helm version of projectile-ag."
   (interactive (if current-prefix-arg (list (read-string "option: " "" 'helm-ag--extra-options-history))))
-  (if (require 'helm-ag nil  'noerror)
+  (if (require 'helm-ag nil t)
       (if (projectile-project-p)
           (let* ((grep-find-ignored-files (cl-union (projectile-ignored-files-rel) grep-find-ignored-files))
                  (grep-find-ignored-directories (cl-union (projectile-ignored-directories-rel) grep-find-ignored-directories))
@@ -903,7 +903,12 @@ DIR is the project root, if not set then current directory is used"
                  (current-prefix-arg nil))
             (helm-do-ag (projectile-project-root) (car (projectile-parse-dirconfig-file))))
         (error "You're not in a project"))
-    (error "helm-ag not available")))
+    (when (yes-or-no-p "`helm-ag' is not installed. Install? ")
+      (condition-case nil
+          (progn
+            (package-install 'helm-ag)
+            (helm-projectile-ag))
+        (error (error "`helm-ag' is not available. Is MELPA in your `package-archives'?"))))))
 
 (defun helm-projectile-commander-bindings ()
   (def-projectile-commander-method ?a
