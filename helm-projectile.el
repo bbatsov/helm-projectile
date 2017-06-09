@@ -896,7 +896,7 @@ DIR is the project root, if not set then current directory is used"
                  (grep-find-ignored-directories (cl-union (projectile-ignored-directories-rel) grep-find-ignored-directories))
                  (ignored (mapconcat (lambda (i)
                                        (concat "--ignore " i))
-                                     (append grep-find-ignored-files grep-find-ignored-directories)
+                                     (append grep-find-ignored-files grep-find-ignored-directories (cadr (projectile-parse-dirconfig-file)))
                                      " "))
                  (helm-ag-command-option options)
                  (helm-ag-base-command (concat helm-ag-base-command " " ignored))
