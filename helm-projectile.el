@@ -687,7 +687,7 @@ With a prefix ARG invalidates the cache first."
            ;; for consistency, we should just let Projectile take care of ignored files
            (helm-boring-file-regexp-list nil))
        (helm :sources ,source
-             :buffer "*helm projectile*"
+             :buffer (concat "*helm projectile: " (projectile-project-name) "*")
              :truncate-lines ,truncate-lines-var
              :prompt (projectile-prepend-project-name ,prompt)))))
 
