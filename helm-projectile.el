@@ -456,12 +456,6 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
                                             (list candidate))))
           (rename-buffer dired-buffer-name))))))
 
-(advice-add 'helm-find-file-or-marked :after
-            (lambda (orig-fun &rest args)
-              "Run `projectile-find-file-hook' if using projectile."
-              (when (and projectile-mode (projectile-project-p))
-                (run-hooks 'projectile-find-file-hook))))
-
 (defvar helm-projectile-find-file-map
   (let ((map (copy-keymap helm-find-files-map)))
     (helm-projectile-define-key map
@@ -698,6 +692,14 @@ With a prefix ARG invalidates the cache first."
 (helm-projectile-command "recentf" 'helm-source-projectile-recentf-list "Recently visited file: ")
 (helm-projectile-command "switch-to-buffer" 'helm-source-projectile-buffers-list "Switch to buffer: " nil helm-buffers-truncate-lines)
 (helm-projectile-command "browse-dirty-projects" 'helm-source-projectile-dirty-projects "Select a project: " t)
+
+;; Make `helm-projectile-find-file' call the hooks in `projectile-find-file-hook'
+;; just as the regular function `projectile-find-file' does.
+(advice-add 'helm-projectile-find-file :after
+            (lambda (&optional arg) (run-hooks 'projectile-find-file-hook)))
+;; Same for `helm-projectile-find-dir' and `projectile-find-dir-hook'
+(advice-add 'helm-projectile-find-dir :after
+            (lambda (&optional arg) (run-hooks 'projectile-find-dir-hook)))
 
 (defun helm-projectile--files-display-real (files root)
   "Create (DISPLAY . REAL) pairs with FILES and ROOT.
