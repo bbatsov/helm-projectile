@@ -50,6 +50,7 @@
 
 (declare-function eshell "eshell")
 (declare-function helm-do-ag "helm-ag")
+(declare-function dired-get-filename "dired")
 (defvar helm-ag-base-command)
 
 (defvar grep-find-ignored-directories)
@@ -59,6 +60,7 @@
   "Helm support for projectile."
   :prefix "helm-projectile-"
   :group 'projectile
+  :group 'helm
   :link `(url-link :tag "GitHub" "https://github.com/bbatsov/helm-projectile"))
 
 (defvar helm-projectile-current-project-root)
@@ -66,7 +68,7 @@
 (defcustom helm-projectile-truncate-lines nil
   "Truncate lines in helm projectile commands when non--nil.
 
-Some helm-projectile commands have similar behavior with existing
+Some `helm-projectile' commands have similar behavior with existing
 Helms.  In these cases their respective custom var for truncation
 of lines will be honored.  E.g. `helm-buffers-truncate-lines'
 dictates the truncation in `helm-projectile-switch-to-buffer'."
@@ -76,12 +78,12 @@ dictates the truncation in `helm-projectile-switch-to-buffer'."
 ;;;###autoload
 (defcustom helm-projectile-fuzzy-match t
   "Enable fuzzy matching for Helm Projectile commands.
-This needs to be set before loading helm-projectile."
+This needs to be set before loading helm-projectile.el."
   :group 'helm-projectile
   :type 'boolean)
 
 (defmacro helm-projectile-define-key (keymap key def &rest bindings)
-  "In KEYMAP, define key sequence KEY1 as DEF1, KEY2 as DEF2 ..."
+  "In KEYMAP, define KEY - DEF sequence KEY1 as DEF1, KEY2 as DEF2 ..."
   (declare (indent defun))
   (let ((ret '(progn)))
     (while key
@@ -96,8 +98,7 @@ This needs to be set before loading helm-projectile."
     (reverse ret)))
 
 (defun helm-projectile-hack-actions (actions &rest prescription)
-  "Given a Helm action list and a prescription, return a hacked
-Helm action list, after applying the PRESCRIPTION.
+  "Given a Helm action list and a prescription, return a hacked Helm action list, after applying the PRESCRIPTION.
 
 The Helm action list ACTIONS is of the form:
 
@@ -155,7 +156,7 @@ DIR is a directory to be switched"
 DIR is the project root."
   (let ((helm--reading-passwd-or-string t)
         (default-directory dir))
-    (projectile-compile-project helm-current-prefix-arg dir)))
+    (projectile-compile-project helm-current-prefix-arg)))
 
 (defun helm-projectile-test-project (dir)
   "A Helm action for test a project.
@@ -268,8 +269,8 @@ It is there because Helm requires it."
     "Helm source for dirty version controlled projectile projects.")
 
 (defun helm-projectile-get-dirty-projects ()
-  "Return dirty version controlled known projects as an alist
-   to have a nice display in Helm."
+  "Return dirty version controlled known projects as an alist to
+have a nice display in Helm."
   (message "Checking for dirty known projects...")
   (let* ((status (projectile-check-vcs-status-of-known-projects))
          (proj-dir (cl-loop for stat in status
@@ -312,15 +313,15 @@ Previews the contents of a file in a temporary buffer."
         (helm-attrset 'previewp t)))
     (helm-attrset 'current-candidate candidate)))
 
-(defun helm-projectile-find-files-eshell-command-on-file-action (_candidate)
+(defun helm-projectile-find-files-eshell-command-on-file-action (candidate)
   (interactive)
-  (let* ((helm-ff-default-directory (file-name-directory _candidate)))
-    (helm-find-files-eshell-command-on-file _candidate)))
+  (let* ((helm-ff-default-directory (file-name-directory candidate)))
+    (helm-find-files-eshell-command-on-file candidate)))
 
-(defun helm-projectile-ff-etags-select-action (_candidate)
+(defun helm-projectile-ff-etags-select-action (candidate)
   (interactive)
-  (let* ((helm-ff-default-directory (file-name-directory _candidate)))
-    (helm-ff-etags-select _candidate)))
+  (let* ((helm-ff-default-directory (file-name-directory candidate)))
+    (helm-ff-etags-select candidate)))
 
 (defun helm-projectile-switch-to-eshell (dir)
   (interactive)
@@ -456,11 +457,13 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
                                             (list candidate))))
           (rename-buffer dired-buffer-name))))))
 
-(advice-add 'helm-find-file-or-marked :after
-            (lambda (orig-fun &rest args)
-              "Run `projectile-find-file-hook' if using projectile."
-              (when (and projectile-mode (projectile-project-p))
-                (run-hooks 'projectile-find-file-hook))))
+(defun helm-projectile-run-projectile-hooks-after-find-file (_orig-fun &rest _args)
+  "Run `projectile-find-file-hook' if using projectile."
+  (when (and projectile-mode (projectile-project-p))
+    (run-hooks 'projectile-find-file-hook)))
+
+(advice-add 'helm-find-file-or-marked
+            :after #'helm-projectile-run-projectile-hooks-after-find-file)
 
 (defvar helm-projectile-find-file-map
   (let ((map (copy-keymap helm-find-files-map)))
@@ -559,12 +562,12 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
   "Helm source definition for Projectile delete files.")
 
 (defun helm-projectile-dired-find-dir (dir)
-  "Jump to a selected directory DIR from helm-projectile."
+  "Jump to a selected directory DIR from `helm-projectile'."
   (dired (expand-file-name dir (projectile-project-root)))
   (run-hooks 'projectile-find-dir-hook))
 
 (defun helm-projectile-dired-find-dir-other-window (dir)
-  "Jump to a selected directory DIR from helm-projectile."
+  "Jump to a selected directory DIR from `helm-projectile'."
   (dired-other-window (expand-file-name dir (projectile-project-root)))
   (run-hooks 'projectile-find-dir-hook))
 
@@ -662,10 +665,11 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
     helm-source-projectile-projects
     )
   "Default sources for `helm-projectile'."
+  :type 'list
   :group 'helm-projectile)
 
 (defmacro helm-projectile-command (command source prompt &optional not-require-root truncate-lines-var)
-  "Template for generic helm-projectile commands.
+  "Template for generic `helm-projectile' commands.
 COMMAND is a command name to be appended with \"helm-projectile\" prefix.
 SOURCE is a Helm source that should be Projectile specific.
 PROMPT is a string for displaying as a prompt.
@@ -766,20 +770,21 @@ Other file extensions can be customized with the variable `projectile-other-file
   '("Find file" helm-grep-action
     "Find file other frame" helm-grep-other-frame
     (lambda () (and (locate-library "elscreen")
-                    "Find file in Elscreen"))
+               "Find file in Elscreen"))
     helm-grep-jump-elscreen
     "Save results in grep buffer" helm-grep-save-results
     "Find file other window" helm-grep-other-window)
   "Available actions for `helm-projectile-grep-or-ack'.
 The contents of this list are passed as the arguments to `helm-make-actions'."
+  :type 'symbol
   :group 'helm-projectile)
 
 (defcustom helm-projectile-set-input-automatically t
   "If non-nil, attempt to set search input automatically.
 Automatic input selection uses the region (if there is an active
 region), otherwise it uses the current symbol at point (if there
-is one). Applies to `helm-projectile-grep' and
-`helm-projectile-ack' only. If the `helm-ag' package is
+is one).  Applies to `helm-projectile-grep' and
+`helm-projectile-ack' only.  If the `helm-ag' package is
 installed, then automatic input behavior for `helm-projectile-ag'
 can be customized using `helm-ag-insert-at-point'."
   :group 'helm-projectile
@@ -795,8 +800,6 @@ It is usually \"ack\" or \"ack-grep\".
 If it is nil, or ack/ack-grep not found then use default grep command."
   (let* ((default-directory (or dir (projectile-project-root)))
          (helm-ff-default-directory default-directory)
-         (follow (and helm-follow-mode-persistent
-                      (assoc-default 'follow helm-source-grep)))
          (helm-grep-in-recurse t)
          (helm-grep-ignored-files (cl-union (projectile-ignored-files-rel)  grep-find-ignored-files))
          (helm-grep-ignored-directories
@@ -812,7 +815,7 @@ If it is nil, or ack/ack-grep not found then use default grep command."
     (setq helm-source-grep
           (helm-build-async-source
               (capitalize (helm-grep-command t))
-            :header-name (lambda (name)
+            :header-name (lambda (_name)
                            (let ((name (if use-ack-p
                                            "Helm Projectile Ack"
                                          "Helm Projectile Grep")))
@@ -845,14 +848,14 @@ If it is nil, or ack/ack-grep not found then use default grep command."
 
 ;;;###autoload
 (defun helm-projectile-on ()
-  "Turn on helm-projectile key bindings."
+  "Turn on `helm-projectile' key bindings."
   (interactive)
   (message "Turn on helm-projectile key bindings")
   (helm-projectile-toggle 1))
 
 ;;;###autoload
 (defun helm-projectile-off ()
-  "Turn off helm-projectile key bindings."
+  "Turn off `helm-projectile' key bindings."
   (interactive)
   (message "Turn off helm-projectile key bindings")
   (helm-projectile-toggle -1))
@@ -888,7 +891,7 @@ DIR is the project root, if not set then current directory is used"
 
 ;;;###autoload
 (defun helm-projectile-ag (&optional options)
-  "Helm version of projectile-ag."
+  "Helm version of `projectile-ag'."
   (interactive (if current-prefix-arg (list (helm-read-string "option: " "" 'helm-ag--extra-options-history))))
   (if (require 'helm-ag nil t)
       (if (projectile-project-p)
@@ -898,7 +901,6 @@ DIR is the project root, if not set then current directory is used"
                                        (concat "--ignore " i))
                                      (append grep-find-ignored-files grep-find-ignored-directories (cadr (projectile-parse-dirconfig-file)))
                                      " "))
-                 (helm-ag-command-option options)
                  (helm-ag-base-command (concat helm-ag-base-command " " ignored))
                  (current-prefix-arg nil))
             (helm-do-ag (projectile-project-root) (car (projectile-parse-dirconfig-file))))
@@ -908,7 +910,7 @@ DIR is the project root, if not set then current directory is used"
           (progn
             (package-install 'helm-ag)
             (helm-projectile-ag options))
-        (error (error "`helm-ag' is not available. Is MELPA in your `package-archives'?"))))))
+        (error (error "`helm-ag' is not available.  Is MELPA in your `package-archives'?"))))))
 
 (defun helm-projectile-commander-bindings ()
   (def-projectile-commander-method ?a
