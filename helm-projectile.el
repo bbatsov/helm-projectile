@@ -499,11 +499,9 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
 (defvar helm-source-projectile-files-list
   (helm-build-sync-source "Projectile files"
     :candidates (lambda ()
-                  (condition-case nil
-                      (cl-loop with root = (projectile-project-root)
-                               for display in (projectile-current-project-files)
-                               collect (cons display (expand-file-name display root)))
-                    (error nil)))
+                  (cl-loop with root = (projectile-project-root)
+                           for display in (projectile-current-project-files)
+                           collect (cons display (expand-file-name display root))))
     :fuzzy-match helm-projectile-fuzzy-match
     :keymap helm-projectile-find-file-map
     :help-message 'helm-ff-help-message
@@ -516,10 +514,8 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
 (defvar helm-source-projectile-files-in-all-projects-list
   (helm-build-sync-source "Projectile files in all Projects"
     :candidates (lambda ()
-                  (condition-case nil
-                      (let ((projectile-require-project-root nil))
-                        (projectile-all-project-files))
-                    (error nil)))
+                  (let ((projectile-require-project-root nil))
+                    (projectile-all-project-files)))
     :keymap helm-find-files-map
     :help-message 'helm-ff-help-message
     :mode-line helm-read-file-name-mode-line-string
@@ -537,13 +533,11 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
 (defvar helm-source-projectile-dired-files-list
   (helm-build-in-buffer-source "Projectile files in current Dired buffer"
     :data (lambda ()
-            (condition-case nil
-                (if (and (file-remote-p (projectile-project-root))
-                         (not helm-projectile-virtual-dired-remote-enable))
-                    nil
-                  (when (eq major-mode 'dired-mode)
-                    (helm-projectile-files-in-current-dired-buffer)))
-              (error nil)))
+            (if (and (file-remote-p (projectile-project-root))
+                     (not helm-projectile-virtual-dired-remote-enable))
+                nil
+              (when (eq major-mode 'dired-mode)
+                (helm-projectile-files-in-current-dired-buffer))))
     :filter-one-by-one (lambda (file)
                          (let ((helm-ff-transformer-show-only-basename t))
                            (helm-ff-filter-candidate-one-by-one file)))
@@ -570,12 +564,10 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
 (defvar helm-source-projectile-directories-list
   (helm-build-sync-source "Projectile directories"
     :candidates (lambda ()
-                  (condition-case nil
-                      (let ((dirs (if projectile-find-dir-includes-top-level
-                                      (append '("./") (projectile-current-project-dirs))
-                                    (projectile-current-project-dirs))))
-                        (helm-projectile--files-display-real dirs (projectile-project-root)))
-                    (error nil)))
+                  (let ((dirs (if projectile-find-dir-includes-top-level
+                                  (append '("./") (projectile-current-project-dirs))
+                                (projectile-current-project-dirs))))
+                    (helm-projectile--files-display-real dirs (projectile-project-root))))
     :fuzzy-match helm-projectile-fuzzy-match
     :action-transformer 'helm-find-files-action-transformer
     :keymap (let ((map (make-sparse-keymap)))
@@ -634,10 +626,8 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
 (defvar helm-source-projectile-recentf-list
   (helm-build-sync-source "Projectile recent files"
     :candidates (lambda ()
-                  (condition-case nil
-                      (helm-projectile--files-display-real (projectile-recentf-files)
-                                                           (projectile-project-root))
-                    (error nil)))
+                  (helm-projectile--files-display-real (projectile-recentf-files)
+                                                       (projectile-project-root)))
     :fuzzy-match helm-projectile-fuzzy-match
     :keymap helm-projectile-find-file-map
     :help-message 'helm-ff-help-message
