@@ -222,11 +222,7 @@ It is there because Helm requires it."
 
 (defvar helm-source-projectile-projects
   (helm-build-sync-source "Projectile projects"
-    :candidates (lambda ()
-                  (if (projectile-project-p)
-                      (cons (abbreviate-file-name (projectile-project-root))
-                            (projectile-relevant-known-projects))
-                    projectile-known-projects))
+    :candidates (lambda () projectile-known-projects)
     :fuzzy-match helm-projectile-fuzzy-match
     :keymap helm-projectile-projects-map
     :mode-line helm-read-file-name-mode-line-string
