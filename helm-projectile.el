@@ -496,20 +496,43 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
      . "Add files to Dired buffer `C-c a'"))
   "Action for files.")
 
+(defun helm-projectile--move-to-real ()
+  "Move to first real candidate.
+
+Similar to `helm-ff--move-to-first-real-candidate', but without
+unnecessary complexity."
+  (let ((src (helm-get-current-source)))
+    (helm-aif (and (not (helm-empty-source-p))
+                   (helm-get-selection nil nil src))
+        (unless (or (not (stringp it))
+                    (and (string-match helm-tramp-file-name-regexp it)
+                         (not (file-remote-p it nil t)))
+                    (file-exists-p it))
+          (helm-next-line)))))
+
 (defvar helm-source-projectile-files-list
   (helm-build-sync-source "Projectile files"
     :candidates (lambda ()
+                  (add-hook 'helm-update-hook #'helm-projectile--move-to-real)
                   (with-helm-current-buffer
                     (cl-loop with root = (projectile-project-root)
                              for display in (projectile-current-project-files)
-                             collect (cons display (expand-file-name display root)))))
+                             collect (cons display (expand-file-name display root)) into files
+                             if (or (string-blank-p helm-pattern)
+                                    (assoc helm-pattern files))
+                             finally return files
+                             else for new-display = (helm-ff-prefix-filename helm-pattern nil t)
+                             finally return (cl-acons new-display helm-pattern files))))
+    :cleanup (lambda ()
+               (remove-hook 'helm-update-hook #'helm-projectile--move-to-real))
     :fuzzy-match helm-projectile-fuzzy-match
     :keymap helm-projectile-find-file-map
     :help-message 'helm-ff-help-message
     :mode-line helm-read-file-name-mode-line-string
     :action helm-projectile-file-actions
     :persistent-action #'helm-projectile-file-persistent-action
-    :persistent-help "Preview file")
+    :persistent-help "Preview file"
+    :volatile t)
   "Helm source definition for Projectile files.")
 
 (defvar helm-source-projectile-files-in-all-projects-list
