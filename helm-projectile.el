@@ -516,13 +516,19 @@ unnecessary complexity."
                   (add-hook 'helm-update-hook #'helm-projectile--move-to-real)
                   (with-helm-current-buffer
                     (cl-loop with root = (projectile-project-root)
+                             with new-file-on-cwd = (expand-file-name helm-pattern)
+                             with new-file-on-root = (expand-file-name helm-pattern root)
                              for display in (projectile-current-project-files)
                              collect (cons display (expand-file-name display root)) into files
-                             if (or (string-blank-p helm-pattern)
-                                    (assoc helm-pattern files))
-                             finally return files
-                             else for new-display = (helm-ff-prefix-filename helm-pattern nil t)
-                             finally return (cl-acons new-display helm-pattern files))))
+                             finally return
+                             (if (or (string= helm-pattern "")
+                                     (assoc helm-pattern files))
+                                 files
+                               (cl-pairlis (list (helm-ff-prefix-filename new-file-on-cwd nil t)
+                                                 (helm-ff-prefix-filename new-file-on-root nil t))
+                                           (list new-file-on-cwd
+                                                 new-file-on-root)
+                                           files)))))
     :cleanup (lambda ()
                (remove-hook 'helm-update-hook #'helm-projectile--move-to-real))
     :fuzzy-match helm-projectile-fuzzy-match
