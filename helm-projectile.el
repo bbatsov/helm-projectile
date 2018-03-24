@@ -558,7 +558,7 @@ unnecessary complexity."
                   (with-helm-current-buffer
                     (let ((projectile-require-project-root nil))
                       (projectile-all-project-files))))
-    :keymap helm-find-files-map
+    :keymap helm-projectile-find-file-map
     :help-message 'helm-ff-help-message
     :mode-line helm-read-file-name-mode-line-string
     :action helm-projectile-file-actions
@@ -781,10 +781,7 @@ Other file extensions can be customized with the variable `projectile-other-file
             (let* ((helm-ff-transformer-show-only-basename nil))
               (helm :sources (helm-build-sync-source "Projectile other files"
                                :candidates (helm-projectile--files-display-real other-files project-root)
-                               :keymap (let ((map (copy-keymap helm-find-files-map)))
-                                         (define-key map (kbd "<left>") 'helm-previous-source)
-                                         (define-key map (kbd "<right>") 'helm-next-source)
-                                         map)
+                               :keymap helm-projectile-find-file-map
                                :help-message helm-ff-help-message
                                :mode-line helm-read-file-name-mode-line-string
                                :action helm-projectile-file-actions
