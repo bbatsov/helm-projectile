@@ -688,8 +688,7 @@ unnecessary complexity."
 (defcustom helm-projectile-sources-list
   '(helm-source-projectile-buffers-list
     helm-source-projectile-files-list
-    helm-source-projectile-projects
-    )
+    helm-source-projectile-projects)
   "Default sources for `helm-projectile'."
   :type 'list
   :group 'helm-projectile)
@@ -1019,15 +1018,16 @@ DIR is the project root, if not set then current directory is used"
 With a prefix ARG invalidates the cache first.
 If invoked outside of a project, displays a list of known projects to jump."
   (interactive "P")
-  (if (projectile-project-p)
-      (projectile-maybe-invalidate-cache arg))
-  (let ((helm-ff-transformer-show-only-basename nil))
-    (helm :sources helm-projectile-sources-list
-          :buffer "*helm projectile*"
-          :truncate-lines helm-projectile-truncate-lines
-          :prompt (projectile-prepend-project-name (if (projectile-project-p)
-                                                       "pattern: "
-                                                     "Switch to project: ")))))
+  (if (not (projectile-project-p))
+      (helm-projectile-switch-project arg)
+    (projectile-maybe-invalidate-cache arg)
+    (let ((helm-ff-transformer-show-only-basename nil))
+      (helm :sources helm-projectile-sources-list
+            :buffer "*helm projectile*"
+            :truncate-lines helm-projectile-truncate-lines
+            :prompt (projectile-prepend-project-name (if (projectile-project-p)
+                                                         "pattern: "
+                                                       "Switch to project: "))))))
 
 ;;;###autoload
 (eval-after-load 'projectile
