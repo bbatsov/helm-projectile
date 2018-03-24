@@ -524,10 +524,16 @@ unnecessary complexity."
                 (helm-projectile--move-selection-p selection)))
     (helm-next-line)))
 
+(defun helm-projectile--remove-move-to-real ()
+  "Hook function to remove `helm-projectile--move-to-real'."
+  (remove-hook 'helm-after-update-hook #'helm-projectile--move-to-real))
+
 (defvar helm-source-projectile-files-list
   (helm-build-sync-source "Projectile files"
+    :before-init-hook (lambda ()
+                        (add-hook 'helm-after-update-hook #'helm-projectile--move-to-real)
+                        (add-hook 'helm-cleanup-hook #'helm-projectile--remove-move-to-real))
     :candidates (lambda ()
-                  (add-hook 'helm-after-update-hook #'helm-projectile--move-to-real)
                   (with-helm-current-buffer
                     (cl-loop with root = (projectile-project-root)
                              with file-at-root = (file-relative-name (expand-file-name helm-pattern root))
@@ -718,11 +724,10 @@ With a prefix ARG invalidates the cache first."
      (let ((helm-ff-transformer-show-only-basename nil)
            ;; for consistency, we should just let Projectile take care of ignored files
            (helm-boring-file-regexp-list nil))
-       (unwind-protect (helm :sources ,source
-                             :buffer (concat "*helm projectile: " (projectile-project-name) "*")
-                             :truncate-lines ,truncate-lines-var
-                             :prompt (projectile-prepend-project-name ,prompt))
-         (remove-hook 'helm-after-update-hook #'helm-projectile--move-to-real)))))
+       (helm :sources ,source
+             :buffer (concat "*helm projectile: " (projectile-project-name) "*")
+             :truncate-lines ,truncate-lines-var
+             :prompt (projectile-prepend-project-name ,prompt)))))
 
 (helm-projectile-command "switch-project" 'helm-source-projectile-projects "Switch to project: " t)
 (helm-projectile-command "find-file" helm-source-projectile-files-and-dired-list "Find file: ")
