@@ -525,8 +525,12 @@ unnecessary complexity."
     (helm-next-line)))
 
 (defun helm-projectile--remove-move-to-real ()
-  "Hook function to remove `helm-projectile--move-to-real'."
-  (remove-hook 'helm-after-update-hook #'helm-projectile--move-to-real))
+  "Hook function to remove `helm-projectile--move-to-real'.
+
+Meant to be added to `helm-cleanup-hook', from which it removes
+ itself at the end."
+  (remove-hook 'helm-after-update-hook #'helm-projectile--move-to-real)
+  (remove-hook 'helm-cleanup-hook #'helm-projectile--remove-move-to-real))
 
 (defvar helm-source-projectile-files-list
   (helm-build-sync-source "Projectile files"
