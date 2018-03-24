@@ -7,7 +7,7 @@
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
 ;; Version: 0.14.0
-;; Package-Requires: ((helm "1.7.7") (projectile "0.14.0") (cl-lib "0.3"))
+;; Package-Requires: ((helm "1.9.9") (projectile "0.14.0") (cl-lib "0.3"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -527,7 +527,7 @@ unnecessary complexity."
 (defvar helm-source-projectile-files-list
   (helm-build-sync-source "Projectile files"
     :candidates (lambda ()
-                  (add-hook 'helm-update-hook #'helm-projectile--move-to-real)
+                  (add-hook 'helm-after-update-hook #'helm-projectile--move-to-real)
                   (with-helm-current-buffer
                     (cl-loop with root = (projectile-project-root)
                              with file-at-root = (file-relative-name (expand-file-name helm-pattern root))
@@ -722,7 +722,7 @@ With a prefix ARG invalidates the cache first."
                              :buffer (concat "*helm projectile: " (projectile-project-name) "*")
                              :truncate-lines ,truncate-lines-var
                              :prompt (projectile-prepend-project-name ,prompt))
-         (remove-hook 'helm-update-hook #'helm-projectile--move-to-real)))))
+         (remove-hook 'helm-after-update-hook #'helm-projectile--move-to-real)))))
 
 (helm-projectile-command "switch-project" 'helm-source-projectile-projects "Switch to project: " t)
 (helm-projectile-command "find-file" helm-source-projectile-files-and-dired-list "Find file: ")
