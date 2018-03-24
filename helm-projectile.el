@@ -534,20 +534,21 @@ unnecessary complexity."
                         (add-hook 'helm-after-update-hook #'helm-projectile--move-to-real)
                         (add-hook 'helm-cleanup-hook #'helm-projectile--remove-move-to-real))
     :candidates (lambda ()
-                  (with-helm-current-buffer
-                    (cl-loop with root = (projectile-project-root)
-                             with file-at-root = (file-relative-name (expand-file-name helm-pattern root))
-                             for display in (projectile-current-project-files)
-                             collect (cons display (expand-file-name display root)) into files
-                             finally return
-                             (if (or (string-empty-p helm-pattern)
-                                     (assoc helm-pattern files))
-                                 files
-                               (cl-pairlis (list (helm-ff-prefix-filename helm-pattern nil t)
-                                                 (helm-ff-prefix-filename file-at-root nil t))
-                                           (list (expand-file-name helm-pattern)
-                                                 (expand-file-name helm-pattern root))
-                                           files)))))
+                  (when (projectile-project-p)
+                    (with-helm-current-buffer
+                      (cl-loop with root = (projectile-project-root)
+                               with file-at-root = (file-relative-name (expand-file-name helm-pattern root))
+                               for display in (projectile-current-project-files)
+                               collect (cons display (expand-file-name display root)) into files
+                               finally return
+                               (if (or (string-empty-p helm-pattern)
+                                       (assoc helm-pattern files))
+                                   files
+                                 (cl-pairlis (list (helm-ff-prefix-filename helm-pattern nil t)
+                                                   (helm-ff-prefix-filename file-at-root nil t))
+                                             (list (expand-file-name helm-pattern)
+                                                   (expand-file-name helm-pattern root))
+                                             files))))))
     :fuzzy-match helm-projectile-fuzzy-match
     :keymap helm-projectile-find-file-map
     :help-message 'helm-ff-help-message
@@ -612,11 +613,12 @@ unnecessary complexity."
 (defvar helm-source-projectile-directories-list
   (helm-build-sync-source "Projectile directories"
     :candidates (lambda ()
-                  (with-helm-current-buffer
-                    (let ((dirs (if projectile-find-dir-includes-top-level
-                                    (append '("./") (projectile-current-project-dirs))
-                                  (projectile-current-project-dirs))))
-                      (helm-projectile--files-display-real dirs (projectile-project-root)))))
+                  (when (projectile-project-p)
+                    (with-helm-current-buffer
+                      (let ((dirs (if projectile-find-dir-includes-top-level
+                                      (append '("./") (projectile-current-project-dirs))
+                                    (projectile-current-project-dirs))))
+                        (helm-projectile--files-display-real dirs (projectile-project-root))))))
     :fuzzy-match helm-projectile-fuzzy-match
     :action-transformer 'helm-find-files-action-transformer
     :keymap (let ((map (make-sparse-keymap)))
