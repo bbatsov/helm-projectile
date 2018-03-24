@@ -471,6 +471,9 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
       (kbd "M-!") #'helm-projectile-find-files-eshell-command-on-file-action)
     (define-key map (kbd "<left>") #'helm-previous-source)
     (define-key map (kbd "<right>") #'helm-next-source)
+    (dolist (cmd '(helm-find-files-up-one-level
+                   helm-find-files-down-last-level))
+      (substitute-key-definition cmd nil map))
     map)
   "Mapping for file commands in Helm Projectile.")
 
