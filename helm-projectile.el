@@ -551,11 +551,15 @@ Meant to be added to `helm-cleanup-hook', from which it removes
           (if (or (string-empty-p helm-pattern)
                   (assoc helm-pattern files))
               files
-            (cl-pairlis (list (helm-ff-prefix-filename helm-pattern nil t)
-                              (helm-ff-prefix-filename file-at-root nil t))
-                        (list (expand-file-name helm-pattern)
-                              (expand-file-name helm-pattern root))
-                        files)))))
+            (if (equal helm-pattern file-at-root)
+                (cl-acons (helm-ff-prefix-filename helm-pattern nil t)
+                          (expand-file-name helm-pattern)
+                          files)
+              (cl-pairlis (list (helm-ff-prefix-filename helm-pattern nil t)
+                                (helm-ff-prefix-filename file-at-root nil t))
+                          (list (expand-file-name helm-pattern)
+                                (expand-file-name helm-pattern root))
+                          files))))))
     :fuzzy-match helm-projectile-fuzzy-match
     :keymap helm-projectile-find-file-map
     :help-message 'helm-ff-help-message
