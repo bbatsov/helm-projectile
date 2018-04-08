@@ -541,26 +541,28 @@ Meant to be added to `helm-cleanup-hook', from which it removes
                   (when (projectile-project-p)
                     (with-helm-current-buffer
                       (cl-loop with root = (projectile-project-root)
-                               with file-at-root = (file-relative-name (expand-file-name helm-pattern root))
                                for display in (projectile-current-project-files)
-                               collect (cons display (expand-file-name display root)) into files
-                               finally return
-                               (if (or (string-empty-p helm-pattern)
-                                       (assoc helm-pattern files))
-                                   files
-                                 (cl-pairlis (list (helm-ff-prefix-filename helm-pattern nil t)
-                                                   (helm-ff-prefix-filename file-at-root nil t))
-                                             (list (expand-file-name helm-pattern)
-                                                   (expand-file-name helm-pattern root))
-                                             files))))))
+                               collect (cons display (expand-file-name display root))))))
+    :filtered-candidate-transformer
+    (lambda (files _source)
+      (with-helm-current-buffer
+        (let* ((root (projectile-project-root))
+               (file-at-root (file-relative-name (expand-file-name helm-pattern root))))
+          (if (or (string-empty-p helm-pattern)
+                  (assoc helm-pattern files))
+              files
+            (cl-pairlis (list (helm-ff-prefix-filename helm-pattern nil t)
+                              (helm-ff-prefix-filename file-at-root nil t))
+                        (list (expand-file-name helm-pattern)
+                              (expand-file-name helm-pattern root))
+                        files)))))
     :fuzzy-match helm-projectile-fuzzy-match
     :keymap helm-projectile-find-file-map
     :help-message 'helm-ff-help-message
     :mode-line helm-read-file-name-mode-line-string
     :action helm-projectile-file-actions
     :persistent-action #'helm-projectile-file-persistent-action
-    :persistent-help "Preview file"
-    :volatile t)
+    :persistent-help "Preview file")
   "Helm source definition for Projectile files.")
 
 (defvar helm-source-projectile-files-in-all-projects-list
