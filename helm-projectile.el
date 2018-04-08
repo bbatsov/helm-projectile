@@ -559,7 +559,8 @@ Meant to be added to `helm-cleanup-hook', from which it removes
     :mode-line helm-read-file-name-mode-line-string
     :action helm-projectile-file-actions
     :persistent-action #'helm-projectile-file-persistent-action
-    :persistent-help "Preview file")
+    :persistent-help "Preview file"
+    :volatile t)
   "Helm source definition for Projectile files.")
 
 (defvar helm-source-projectile-files-in-all-projects-list
