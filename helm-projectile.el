@@ -39,6 +39,7 @@
 ;;
 ;;; Code:
 
+(require 'subr-x)
 (require 'projectile)
 (require 'cl-lib)
 (require 'grep)
