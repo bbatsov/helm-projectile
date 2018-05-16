@@ -1,7 +1,7 @@
 [![License GPL 3][badge-license]](http://www.gnu.org/licenses/gpl-3.0.txt)
 [![MELPA](http://melpa.org/packages/helm-projectile-badge.svg)](http://melpa.org/#/helm-projectile)
 [![MELPA Stable](http://stable.melpa.org/packages/helm-projectile-badge.svg)](http://stable.melpa.org/#/helm-projectile)
-[![Gratipay Team](https://img.shields.io/gratipay/team/projectile.svg?maxAge=2592000)](https://gratipay.com/projectile/)
+[![Liberapay patrons](https://img.shields.io/liberapay/patrons/bbatsov.svg)](https://en.liberapay.com/bbatsov/)
 
 **The project is looking for more maintainers. I (Bozhidar) don't use Helm myself and
 don't have much time for the project, so I would definitely appreciate some help with it.**
