@@ -956,6 +956,21 @@ DIR is the project root, if not set then current directory is used"
             (helm-projectile-ag options))
         (error (error "`helm-ag' is not available.  Is MELPA in your `package-archives'?"))))))
 
+;;;###autoload
+(defun helm-projectile-rg ()
+  "Projectile version of `helm-rg'."
+  (interactive)
+  (if (require 'helm-rg nil t)
+      (if (projectile-project-p)
+          (helm-rg "" nil (list (projectile-project-root)))
+        (error "You're not in a project"))
+    (when (yes-or-no-p "`helm-rg' is not installed. Install? ")
+      (condition-case nil
+          (progn
+            (package-install 'helm-rg)
+            (helm-projectile-rg))
+        (error "`helm-rg' is not available.  Is MELPA in your `package-archives'?")))))
+
 (defun helm-projectile-commander-bindings ()
   (def-projectile-commander-method ?a
     "Run ack on project."

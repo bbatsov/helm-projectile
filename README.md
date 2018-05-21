@@ -96,6 +96,7 @@ these are the supported commands:
 * `helm-projectile-switch-to-buffer`
 * `helm-projectile-grep` (can be used for both grep or ack)
 * `helm-projectile-ag`
+* `helm-projectile-rg`
 * Replace Helm equivalent commands in `projectile-commander`
 * A virtual directory manager that is unique to Helm Projectile
 
