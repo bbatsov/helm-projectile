@@ -956,6 +956,11 @@ DIR is the project root, if not set then current directory is used"
             (helm-projectile-ag options))
         (error (error "`helm-ag' is not available.  Is MELPA in your `package-archives'?"))))))
 
+;; Declare/define these to satisfy the byte compiler
+(defvar helm-rg-prepend-file-name-line-at-top-of-matches)
+(defvar helm-rg-include-file-on-every-match-line)
+(declare-function helm-rg "helm-rg")
+
 ;;;###autoload
 (defun helm-projectile-rg ()
   "Projectile version of `helm-rg'."
