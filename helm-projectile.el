@@ -945,7 +945,7 @@ DIR is the project root, if not set then current directory is used"
                                        (concat "--ignore " i))
                                      (append grep-find-ignored-files grep-find-ignored-directories (cadr (projectile-parse-dirconfig-file)))
                                      " "))
-                 (helm-ag-base-command (concat helm-ag-base-command " " ignored))
+                 (helm-ag-base-command (concat helm-ag-base-command " " ignored " " options))
                  (current-prefix-arg nil))
             (helm-do-ag (projectile-project-root) (car (projectile-parse-dirconfig-file))))
         (error "You're not in a project"))
