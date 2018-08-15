@@ -687,9 +687,10 @@ Meant to be added to `helm-cleanup-hook', from which it removes
 (defvar helm-source-projectile-recentf-list
   (helm-build-sync-source "Projectile recent files"
     :candidates (lambda ()
-                  (with-helm-current-buffer
-                    (helm-projectile--files-display-real (projectile-recentf-files)
-                                                         (projectile-project-root))))
+                  (when (projectile-project-p)
+                   (with-helm-current-buffer
+                     (helm-projectile--files-display-real (projectile-recentf-files)
+                                                          (projectile-project-root)))))
     :fuzzy-match helm-projectile-fuzzy-match
     :keymap helm-projectile-find-file-map
     :help-message 'helm-ff-help-message
