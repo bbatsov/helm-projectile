@@ -791,7 +791,6 @@ Other file extensions can be customized with the variable `projectile-other-file
   (interactive "P")
   (let* ((project-root (projectile-project-root))
          (other-files (projectile-get-other-files (buffer-file-name)
-                                                  (projectile-current-project-files)
                                                   flex-matching)))
     (if other-files
         (if (= (length other-files) 1)
