@@ -115,6 +115,7 @@ the normal Projectile commands:
 
 ```el
 ;; (setq helm-projectile-fuzzy-match nil)
+;; (setq helm-projectile-rg-insert-at-point 'symbol)
 (require 'helm-projectile)
 (helm-projectile-on)
 ```

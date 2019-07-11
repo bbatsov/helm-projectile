@@ -83,6 +83,11 @@ This needs to be set before loading helm-projectile.el."
   :group 'helm-projectile
   :type 'boolean)
 
+(defcustom helm-projectile-rg-insert-at-point nil
+  "Insert thing at point as rg search pattern.
+   You can set value same as `thing-at-point'"
+  :type 'symbol)
+
 (defmacro helm-projectile-define-key (keymap key def &rest bindings)
   "In KEYMAP, define KEY - DEF sequence KEY1 as DEF1, KEY2 as DEF2 ..."
   (declare (indent defun))
@@ -965,6 +970,12 @@ DIR is the project root, if not set then current directory is used"
   (when (use-region-p)
     (buffer-substring-no-properties (region-beginning) (region-end))))
 
+(defun helm-projectile-rg--thing-at-point (thing-type)
+  (let ((thing (thing-at-point thing-type)))
+    (if thing
+	(substring-no-properties thing)
+      "")))
+
 ;;;###autoload
 (defun helm-projectile-rg ()
   "Projectile version of `helm-rg'."
@@ -973,7 +984,9 @@ DIR is the project root, if not set then current directory is used"
       (if (projectile-project-p)
           (let ((helm-rg-prepend-file-name-line-at-top-of-matches nil)
                 (helm-rg-include-file-on-every-match-line t))
-            (helm-rg (or (helm-projectile-rg--region-selection) "") nil (list (projectile-project-root))))
+            (helm-rg (or (helm-projectile-rg--region-selection)
+			 (helm-projectile-rg--thing-at-point helm-projectile-rg-insert-at-point))
+		     nil (list (projectile-project-root))))
         (error "You're not in a project"))
     (when (yes-or-no-p "`helm-rg' is not installed. Install? ")
       (condition-case nil
