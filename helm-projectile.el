@@ -962,8 +962,10 @@ DIR is the project root, if not set then current directory is used"
 (declare-function helm-rg "helm-rg")
 
 (defun helm-projectile-rg--region-selection ()
-  (when (use-region-p)
-    (buffer-substring-no-properties (region-beginning) (region-end))))
+  (when helm-projectile-set-input-automatically
+    (if (region-active-p)
+        (buffer-substring-no-properties (region-beginning) (region-end))
+      (helm-rg--get-thing-at-pt))))
 
 ;;;###autoload
 (defun helm-projectile-rg ()
@@ -973,7 +975,9 @@ DIR is the project root, if not set then current directory is used"
       (if (projectile-project-p)
           (let ((helm-rg-prepend-file-name-line-at-top-of-matches nil)
                 (helm-rg-include-file-on-every-match-line t))
-            (helm-rg (or (helm-projectile-rg--region-selection) "") nil (list (projectile-project-root))))
+            (helm-rg (helm-projectile-rg--region-selection)
+                     nil
+                     (list (projectile-project-root))))
         (error "You're not in a project"))
     (when (yes-or-no-p "`helm-rg' is not installed. Install? ")
       (condition-case nil
