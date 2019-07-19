@@ -947,7 +947,7 @@ DIR is the project root, if not set then current directory is used"
                                      " "))
                  (helm-ag-base-command (concat helm-ag-base-command " " ignored " " options))
                  (current-prefix-arg nil))
-            (helm-do-ag (projectile-project-root) (car (projectile-parse-dirconfig-file))))
+            (helm-do-ag (projectile-project-root)))
         (error "You're not in a project"))
     (when (yes-or-no-p "`helm-ag' is not installed. Install? ")
       (condition-case nil
