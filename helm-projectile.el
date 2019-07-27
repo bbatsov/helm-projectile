@@ -977,7 +977,7 @@ DIR is the project root, if not set then current directory is used"
                 (helm-rg-include-file-on-every-match-line t))
             (helm-rg (helm-projectile-rg--region-selection)
                      nil
-                     (projectile-project-files (projectile-project-root))))
+                     (list (projectile-project-root))))
         (error "You're not in a project"))
     (when (yes-or-no-p "`helm-rg' is not installed. Install? ")
       (condition-case nil
