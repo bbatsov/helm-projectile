@@ -708,6 +708,23 @@ Meant to be added to `helm-cleanup-hook', from which it removes
   '(helm-source-projectile-dired-files-list
     helm-source-projectile-directories-list))
 
+(defcustom helm-projectile-git-grep-command
+  "git --no-pager grep --no-color -n%c -e %p -- %f"
+  "Command to execute when performing `helm-grep' inside a projectile git project.
+See documentation of `helm-grep-default-command' for the format."
+  :type 'string
+  :group 'helm-projectile
+  )
+
+(defcustom helm-projectile-grep-command
+  "grep -a -r %e -n%cH -e %p %f ."
+  "Command to execute when performing `helm-grep' outside a projectile git project.
+See documentation of `helm-grep-default-command' for the format."
+  :type 'string
+  :group 'helm-projectile
+  )
+
+
 (defcustom helm-projectile-sources-list
   '(helm-source-projectile-buffers-list
     helm-source-projectile-files-list
@@ -852,8 +869,8 @@ If it is nil, or ack/ack-grep not found then use default grep command."
          (helm-grep-default-command (if use-ack-p
                                         (concat ack-executable " -H --no-group --no-color " ack-ignored-pattern " %p %f")
                                       (if (and projectile-use-git-grep (eq (projectile-project-vcs) 'git))
-                                          "git --no-pager grep --no-color -n%c -e %p -- %f"
-                                        "grep -a -r %e -n%cH -e %p %f .")))
+                                          helm-projectile-git-grep-command
+                                        helm-projectile-grep-command)))
          (helm-grep-default-recurse-command helm-grep-default-command))
 
     (setq helm-source-grep
