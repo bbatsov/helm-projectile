@@ -6,7 +6,7 @@
 ;; URL: https://github.com/bbatsov/helm-projectile
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
-;; Version: 0.14.0
+;; Version: 1.0.0
 ;; Package-Requires: ((helm "1.9.9") (projectile "2.1.0") (cl-lib "0.3"))
 
 ;; This file is NOT part of GNU Emacs.
