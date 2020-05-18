@@ -154,8 +154,6 @@ A fairly extensive changelog is available [here](CHANGELOG.md).
 
 **Note:** We started keeping track of changes there after version 1.0.
 
-[badge-license]: https://img.shields.io/badge/license-GPL_3-green.svg
-
 ## License
 
 Copyright © 2011-2020 Bozhidar Batsov and
