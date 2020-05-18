@@ -57,7 +57,7 @@ install elpa-helm-projectile`.
 
 ## Usage
 
-For those who prefer helm to ido, the command `helm-projectile-switch-project`
+For those who prefer helm to ido/ivy, the command `helm-projectile-switch-project`
 can be used to replace `projectile-switch-project` to switch project. Please
 note that this is different from simply setting `projectile-completion-system`
 to `helm`, which just enables projectile to use the Helm completion to complete
@@ -135,5 +135,32 @@ The project is currently looking for more maintainers. I (Bozhidar) don't use He
 don't have much time for the project, so I would definitely appreciate some help with it.
 
 Contact me via e-mail or twitter if you'd like to become a co-maintainer.
+
+## Known issues
+
+Check out the project's
+[issue list](https://github.com/bbatsov/helm-projectile/issues?sort=created&direction=desc&state=open)
+a list of unresolved issues. By the way - feel free to fix any of them
+and sent me a pull request. :-)
+
+## Contributors
+
+Here's a [list](https://github.com/bbatsov/helm-projectile/contributors) of all the people who have contributed to the
+development of Projectile.
+
+## Changelog
+
+A fairly extensive changelog is available [here](CHANGELOG.md).
+
+**Note:** We started keeping track of changes there after version 1.0.
+
+[badge-license]: https://img.shields.io/badge/license-GPL_3-green.svg
+
+## License
+
+Copyright © 2011-2020 Bozhidar Batsov and
+[contributors](https://github.com/bbatsov/helm-projectile/contributors).
+
+Distributed under the GNU General Public License, version 3
 
 [badge-license]: https://img.shields.io/badge/license-GPLv3-blue.svg
