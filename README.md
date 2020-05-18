@@ -1,12 +1,7 @@
 [![License GPL 3][badge-license]](http://www.gnu.org/licenses/gpl-3.0.txt)
 [![MELPA](http://melpa.org/packages/helm-projectile-badge.svg)](http://melpa.org/#/helm-projectile)
 [![MELPA Stable](http://stable.melpa.org/packages/helm-projectile-badge.svg)](http://stable.melpa.org/#/helm-projectile)
-[![Liberapay patrons](https://img.shields.io/liberapay/patrons/bbatsov.svg)](https://en.liberapay.com/bbatsov/)
-
-**The project is looking for more maintainers. I (Bozhidar) don't use Helm myself and
-don't have much time for the project, so I would definitely appreciate some help with it.**
-
-Contact me via e-mail or twitter if you'd like to become a co-maintainer.
+[![Patreon](https://img.shields.io/badge/patreon-donate-orange.svg)](https://www.patreon.com/bbatsov)
 
 ## Helm Projectile
 
@@ -133,5 +128,12 @@ should refer to this guide:
 Obviously you need to have Helm installed for this to work. :-)
 
 ![Helm-Projectile Screenshot](screenshots/helm-projectile.png)
+
+## Project Status
+
+The project is currently looking for more maintainers. I (Bozhidar) don't use Helm myself and
+don't have much time for the project, so I would definitely appreciate some help with it.
+
+Contact me via e-mail or twitter if you'd like to become a co-maintainer.
 
 [badge-license]: https://img.shields.io/badge/license-GPLv3-blue.svg
