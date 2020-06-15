@@ -7,7 +7,7 @@
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
 ;; Version: 1.1.0-snapshot
-;; Package-Requires: ((helm "1.9.9") (projectile "2.1.0") (cl-lib "0.3"))
+;; Package-Requires: ((helm "1.9.9") (projectile "2.2.0") (cl-lib "0.3"))
 
 ;; This file is NOT part of GNU Emacs.
 
