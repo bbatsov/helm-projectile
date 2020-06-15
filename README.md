@@ -18,7 +18,11 @@ Helm with the Projectile file source. You can call it like this:
 M-x helm-projectile
 ```
 
-or even better - invoke the key binding <kbd>C-c p h</kbd>.
+or even better - invoke the key binding <kbd>h</kbd> in Projectile's
+keymap. Assuming you've opted for one of the recommended keymap prefixes (`C-c p`
+or `s-p`), that would mean <kbd>C-c p h</kbd> or <kbd>s-p h</kbd>.
+
+See Projectile's [installation docs](https://docs.projectile.mx/projectile/installation.html#installation-via-package-el) for more details.
 
 ## Installation
 
