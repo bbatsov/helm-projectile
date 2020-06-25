@@ -4,8 +4,6 @@
 
 ### New features
 
-* [#134](https://github.com/bbatsov/helm-projectile/issues/134): Allow customization of grep commands.
-
 ### Changes
 
 ### Bugs fixed
