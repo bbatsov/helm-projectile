@@ -186,7 +186,7 @@ It is there because Helm requires it."
           (message "(No removal performed)")
         (progn
           (mapc (lambda (p)
-                  (delete p projectile-known-projects))
+                  (setq projectile-known-projects (delete p projectile-known-projects)))
                 projects)
           (projectile-save-known-projects))
         (message "%s projects(s) removed" len)))))
