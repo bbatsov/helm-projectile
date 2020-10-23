@@ -977,6 +977,7 @@ DIR is the project root, if not set then current directory is used"
 (defvar helm-rg-prepend-file-name-line-at-top-of-matches)
 (defvar helm-rg-include-file-on-every-match-line)
 (declare-function helm-rg "ext:helm-rg")
+(declare-function helm-rg--get-thing-at-pt "ext:helm-rg")
 
 (defun helm-projectile-rg--region-selection ()
   (when helm-projectile-set-input-automatically
