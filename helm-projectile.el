@@ -186,7 +186,7 @@ It is there because Helm requires it."
           (message "(No removal performed)")
         (progn
           (mapc (lambda (p)
-                  (delete p projectile-known-projects))
+                  (setq projectile-known-projects (delete p projectile-known-projects)))
                 projects)
           (projectile-save-known-projects))
         (message "%s projects(s) removed" len)))))
@@ -209,8 +209,8 @@ It is there because Helm requires it."
 (defcustom helm-source-projectile-projects-actions
   (helm-make-actions
    "Switch to project" (lambda (project)
-                         (let ((projectile-completion-system 'helm))
-                           (projectile-switch-project-by-name project)))
+                         (let ((default-directory project))
+                           (helm-projectile)))
    "Open Dired in project's directory `C-d'" #'dired
    "Open project root in vc-dir or magit `M-g'" #'helm-projectile-vc
    "Switch to Eshell `M-e'" #'helm-projectile-switch-to-shell
