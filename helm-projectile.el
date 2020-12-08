@@ -209,7 +209,7 @@ It is there because Helm requires it."
 (defcustom helm-source-projectile-projects-actions
   (helm-make-actions
    "Switch to project" (lambda (project)
-                         (let ((default-directory (expand-file-name project)))
+                         (let ((default-directory project))
                            (helm-projectile)))
    "Open Dired in project's directory `C-d'" #'dired
    "Open project root in vc-dir or magit `M-g'" #'helm-projectile-vc
