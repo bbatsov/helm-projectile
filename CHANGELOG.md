@@ -6,8 +6,6 @@
 
 ### Changes
 
-* [#146](https://github.com/bbatsov/helm-projectile/pull/146): Use `helm-projectile` interface after switching to a project in `helm-projectile-switch-project`.
-
 ### Bugs fixed
 
 * [#151](https://github.com/bbatsov/helm-projectile/issues/151): Rename `helm-projectile-switch-to-eshell` -> `helm-projectile-switch-to-shell`.
