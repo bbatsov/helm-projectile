@@ -986,14 +986,25 @@ DIR is the project root, if not set then current directory is used"
         (buffer-substring-no-properties (region-beginning) (region-end))
       (helm-rg--get-thing-at-pt))))
 
+(defun glob-quote (string)
+  (replace-regexp-in-string "[]*?[]" "\\\\\\&" string))
+
 ;;;###autoload
 (defun helm-projectile-rg ()
   "Projectile version of `helm-rg'."
   (interactive)
   (if (require 'helm-rg nil t)
       (if (projectile-project-p)
-          (let ((helm-rg-prepend-file-name-line-at-top-of-matches nil)
-                (helm-rg-include-file-on-every-match-line t))
+          (let* ((helm-rg-prepend-file-name-line-at-top-of-matches nil)
+                 (helm-rg-include-file-on-every-match-line t)
+                 (ignored-files (mapcan (lambda (path)
+                                          (list "--glob" (concat "!" (glob-quote path))))
+                                        (cl-union (projectile-ignored-files-rel)  grep-find-ignored-files)))
+                 (ignored-directories (mapcan (lambda (path)
+                                                   (list "--glob" (concat "!" (glob-quote path) "/**")))
+                                              (cl-union (mapcar 'directory-file-name (projectile-ignored-directories-rel))
+                                                        grep-find-ignored-directories)))
+                 (helm-rg--extra-args `(,@ignored-files ,@ignored-directories)))
             (let ((default-directory (projectile-project-root)))
               (helm-rg (helm-projectile-rg--region-selection)
                        nil)))
