@@ -987,6 +987,8 @@ DIR is the project root, if not set then current directory is used"
       (helm-rg--get-thing-at-pt))))
 
 (defun glob-quote (string)
+  "Quote the special glob characters: *, ?, [, and ].
+STRING the string in which to escape special characters."
   (replace-regexp-in-string "[]*?[]" "\\\\\\&" string))
 
 ;;;###autoload
