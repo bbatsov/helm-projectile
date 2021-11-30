@@ -56,7 +56,7 @@ action.
 
 ### Debian and Ubuntu
 
-Users of Debian 9 or later or Ubuntu 16.04 or later may `apt-get
+Users of Debian 9 or later or Ubuntu 16.04 or later may `apt
 install elpa-helm-projectile`.
 
 ## Usage
