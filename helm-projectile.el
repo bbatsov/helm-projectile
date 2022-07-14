@@ -731,7 +731,7 @@ See documentation of `helm-grep-default-command' for the format."
     helm-source-projectile-files-list
     helm-source-projectile-projects)
   "Default sources for `helm-projectile'."
-  :type 'list
+  :type '(repeat symbol)
   :group 'helm-projectile)
 
 (defmacro helm-projectile-command (command source prompt &optional not-require-root truncate-lines-var)
