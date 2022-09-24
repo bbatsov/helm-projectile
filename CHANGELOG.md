@@ -8,6 +8,7 @@
 
 ### Fixes
 
+* [#168](https://github.com/bbatsov/helm-projectile/pull/168): `helm-source-projectile-files-list` collects candidates `with-temp-buffer`.
 * Ensure ignored directories elements are unique.
 * Ensure `helm-source-grep` is not set to a `helm-projectile` specific one.
 
