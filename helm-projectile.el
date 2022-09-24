@@ -658,12 +658,14 @@ Meant to be added to `helm-cleanup-hook', from which it removes
    (candidates
     :initform (lambda ()
                 (when (projectile-project-p)
-                  (with-helm-current-buffer
+                  (with-temp-buffer
+                    (hack-dir-local-variables-non-file-buffer)
                     (helm-projectile--files-display-real (projectile-current-project-files)
                                                          (projectile-project-root))))))
    (filtered-candidate-transformer
     :initform (lambda (files _source)
-                (with-helm-current-buffer
+                (with-temp-buffer
+                  (hack-dir-local-variables-non-file-buffer)
                   (let* ((root (projectile-project-root))
                          (file-at-root (file-relative-name (expand-file-name helm-pattern root))))
                     (if (or (string-empty-p helm-pattern)
