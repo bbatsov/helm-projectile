@@ -544,13 +544,15 @@ Meant to be added to `helm-cleanup-hook', from which it removes
     :before-init-hook 'helm-source-projectile-files-list-before-init-hook
     :candidates (lambda ()
                   (when (projectile-project-p)
-                    (with-helm-current-buffer
-                      (cl-loop with root = (projectile-project-root)
-                               for display in (projectile-current-project-files)
-                               collect (cons display (expand-file-name display root))))))
+                    (with-temp-buffer
+		      (hack-dir-local-variables-non-file-buffer)
+		      (cl-loop with root = (projectile-project-root)
+			       for display in (projectile-current-project-files)
+			       collect (cons display (expand-file-name display root))))))
     :filtered-candidate-transformer
     (lambda (files _source)
-      (with-helm-current-buffer
+      (with-temp-buffer
+	(hack-dir-local-variables-non-file-buffer)
         (let* ((root (projectile-project-root))
                (file-at-root (file-relative-name (expand-file-name helm-pattern root))))
           (if (or (string-empty-p helm-pattern)
