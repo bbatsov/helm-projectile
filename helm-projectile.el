@@ -99,7 +99,8 @@ This needs to be set before loading helm-projectile.el."
     (reverse ret)))
 
 (defun helm-projectile-hack-actions (actions &rest prescription)
-  "Given a Helm action list and a prescription, return a hacked Helm action list, after applying the PRESCRIPTION.
+  "Given a Helm action list and a prescription, return a hacked Helm action list.
+Optionally applies the PRESCRIPTION beforehand.
 
 The Helm action list ACTIONS is of the form:
 
@@ -807,8 +808,9 @@ With a prefix ARG invalidates the cache first."
 ;;;###autoload
 (defun helm-projectile-find-other-file (&optional flex-matching)
   "Switch between files with the same name but different extensions using Helm.
-With FLEX-MATCHING, match any file that contains the base name of current file.
-Other file extensions can be customized with the variable `projectile-other-file-alist'."
+With FLEX-MATCHING, match any file that contains the base name of
+current file.  Other file extensions can be customized with the
+variable `projectile-other-file-alist'."
   (interactive "P")
   (let* ((project-root (projectile-project-root))
          (other-files (projectile-get-other-files (buffer-file-name)
