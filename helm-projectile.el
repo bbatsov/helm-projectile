@@ -677,11 +677,11 @@ Meant to be added to `helm-cleanup-hook', from which it removes
                          ;; If a new buffer is longer that this value
                          ;; this value will be updated
                          (setq helm-buffer-max-len-mode (cdr result))))))
-   (candidates :initform helm-projectile-buffers-list-cache)
+   (candidates :initform 'helm-projectile-buffers-list-cache)
    (matchplugin :initform nil)
    (match :initform 'helm-buffers-match-function)
    (persistent-action :initform 'helm-buffers-list-persistent-action)
-   (keymap :initform helm-buffer-map)
+   (keymap :initform 'helm-buffer-map)
    (volatile :initform t)
    (persistent-help
     :initform
