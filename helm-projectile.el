@@ -699,12 +699,12 @@ Meant to be added to `helm-cleanup-hook', from which it removes
                                                                (symbol-name major-mode)))
                                             into len-mode
                                             finally return (cons len-buf len-mode))))
-                       (unless helm-buffer-max-length
-                         (setq helm-buffer-max-length (car result)))
-                       (unless helm-buffer-max-len-mode
+                       (unless (default-value 'helm-buffer-max-length)
+                         (helm-set-local-variable 'helm-buffer-max-length (car result)))
+                       (unless (default-value 'helm-buffer-max-len-mode)
                          ;; If a new buffer is longer that this value
                          ;; this value will be updated
-                         (setq helm-buffer-max-len-mode (cdr result))))))
+                         (helm-set-local-variable 'helm-buffer-max-len-mode (cdr result))))))
    (candidates :initform 'helm-projectile-buffers-list-cache)
    (matchplugin :initform nil)
    (match :initform 'helm-buffers-match-function)
