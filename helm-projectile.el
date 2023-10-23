@@ -664,7 +664,7 @@ Meant to be added to `helm-cleanup-hook', from which it removes
   ((init :initform (lambda ()
                      ;; Issue #51 Create the list before `helm-buffer' creation.
                      (setq helm-projectile-buffers-list-cache
-                           (ignore-errors (cdr (projectile-project-buffer-names))))
+                           (ignore-errors (remove (buffer-name) (projectile-project-buffer-names))))
                      (let ((result (cl-loop for b in helm-projectile-buffers-list-cache
                                             maximize (length b) into len-buf
                                             maximize (length (with-current-buffer b
