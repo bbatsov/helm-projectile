@@ -4,6 +4,9 @@
 
 ### New features
 
+* Improve `helm-source-proctile-project-list` by also inheriting the `helm-type-file` class to benefit of it's functionality
+  such as candidate transformer or file cache.
+
 ### Changes
 
 ### Bugs fixed

@@ -222,13 +222,12 @@ It is there because Helm requires it."
   :group 'helm-projectile
   :type '(alist :key-type string :value-type function))
 
-(defvar helm-source-projectile-projects
-  (helm-build-sync-source "Projectile projects"
-    :candidates (lambda () (with-helm-current-buffer projectile-known-projects))
-    :fuzzy-match helm-projectile-fuzzy-match
-    :keymap helm-projectile-projects-map
-    :mode-line helm-read-file-name-mode-line-string
-    :action 'helm-source-projectile-projects-actions)
+(defclass helm-projectile-projects-source (helm-source-sync helm-type-file)
+  ((candidates :initform (lambda () (with-helm-current-buffer projectile-known-projects)))
+   (fuzzy-match :initform 'helm-projectile-fuzzy-match)
+   (keymap :initform 'helm-projectile-projects-map)
+   (mode-line :initform 'helm-read-file-name-mode-line-string)
+   (action :initform 'helm-source-projectile-projects-actions))
   "Helm source for known projectile projects.")
 
 (defvar helm-projectile-dirty-projects-map
