@@ -230,6 +230,9 @@ It is there because Helm requires it."
    (action :initform 'helm-source-projectile-projects-actions))
   "Helm source for known projectile projects.")
 
+(defvar helm-source-projectile-projects
+  (helm-make-source "Projectile projects" 'helm-projectile-projects-source))
+
 (defvar helm-projectile-dirty-projects-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map helm-map)
