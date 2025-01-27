@@ -230,6 +230,9 @@ It is there because Helm requires it."
    (action :initform 'helm-source-projectile-projects-actions))
   "Helm source for known projectile projects.")
 
+(cl-defmethod helm--setup-source :after ((source helm-projectile-projects-source))
+  (setf (slot-value source 'action) 'helm-source-projectile-projects-actions))
+
 (defvar helm-source-projectile-projects
   (helm-make-source "Projectile projects" 'helm-projectile-projects-source))
 
