@@ -1,6 +1,6 @@
 ;;; helm-projectile.el --- Helm integration for Projectile         -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2020 Bozhidar Batsov
+;; Copyright (C) 2011-2025 Bozhidar Batsov
 
 ;; Author: Bozhidar Batsov
 ;; URL: https://github.com/bbatsov/helm-projectile
