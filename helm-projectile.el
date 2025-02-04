@@ -1110,6 +1110,8 @@ STRING the string in which to escape special characters."
 With a prefix ARG invalidates the cache first.
 If invoked outside of a project, displays a list of known projects to jump."
   (interactive "P")
+  (unless projectile-known-projects
+    (projectile-load-known-projects))
   (if (not (projectile-project-p))
       (helm-projectile-switch-project arg)
     (projectile-maybe-invalidate-cache arg)
