@@ -7,7 +7,7 @@
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
 ;; Version: 1.1.0-snapshot
-;; Package-Requires: ((helm "1.9.9") (projectile "2.2.0") (cl-lib "0.3"))
+;; Package-Requires: ((helm "1.9.9") (projectile "2.9") (cl-lib "0.3"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -223,7 +223,7 @@ It is there because Helm requires it."
   :type '(alist :key-type string :value-type function))
 
 (defclass helm-projectile-projects-source (helm-source-sync helm-type-file)
-  ((candidates :initform (lambda () (with-helm-current-buffer projectile-known-projects)))
+  ((candidates :initform (lambda () (with-helm-current-buffer (projectile--init-known-projects) projectile-known-projects)))
    (fuzzy-match :initform 'helm-projectile-fuzzy-match)
    (keymap :initform 'helm-projectile-projects-map)
    (mode-line :initform 'helm-read-file-name-mode-line-string)
@@ -1110,8 +1110,7 @@ STRING the string in which to escape special characters."
 With a prefix ARG invalidates the cache first.
 If invoked outside of a project, displays a list of known projects to jump."
   (interactive "P")
-  (unless projectile-known-projects
-    (projectile-load-known-projects))
+  (projectile--init-known-projects)
   (if (not (projectile-project-p))
       (helm-projectile-switch-project arg)
     (projectile-maybe-invalidate-cache arg)
