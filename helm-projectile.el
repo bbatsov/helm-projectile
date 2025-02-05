@@ -223,7 +223,7 @@ It is there because Helm requires it."
   :type '(alist :key-type string :value-type function))
 
 (defclass helm-projectile-projects-source (helm-source-sync helm-type-file)
-  ((candidates :initform (lambda () (with-helm-current-buffer (projectile--init-known-projects) projectile-known-projects)))
+  ((candidates :initform (lambda () (with-helm-current-buffer (projectile-known-projects))))
    (fuzzy-match :initform 'helm-projectile-fuzzy-match)
    (keymap :initform 'helm-projectile-projects-map)
    (mode-line :initform 'helm-read-file-name-mode-line-string)
@@ -1110,7 +1110,6 @@ STRING the string in which to escape special characters."
 With a prefix ARG invalidates the cache first.
 If invoked outside of a project, displays a list of known projects to jump."
   (interactive "P")
-  (projectile--init-known-projects)
   (if (not (projectile-project-p))
       (helm-projectile-switch-project arg)
     (projectile-maybe-invalidate-cache arg)
