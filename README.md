@@ -24,6 +24,13 @@ or `s-p`), that would mean <kbd>C-c p h</kbd> or <kbd>s-p h</kbd>.
 
 See Projectile's [installation docs](https://docs.projectile.mx/projectile/installation.html#installation-via-package-el) for more details.
 
+## Project Status
+
+The project is currently looking for more maintainers. I (Bozhidar) don't use Helm myself and
+don't have much time for the project, so I would definitely appreciate some help with it.
+
+Contact me via e-mail or GitHub if you'd like to become a co-maintainer.
+
 ## Installation
 
 The recommended way to install helm-projectile is via `package.el`.
@@ -132,13 +139,6 @@ should refer to this guide:
 Obviously you need to have Helm installed for this to work. :-)
 
 ![Helm-Projectile Screenshot](screenshots/helm-projectile.png)
-
-## Project Status
-
-The project is currently looking for more maintainers. I (Bozhidar) don't use Helm myself and
-don't have much time for the project, so I would definitely appreciate some help with it.
-
-Contact me via e-mail or twitter if you'd like to become a co-maintainer.
 
 ## Known issues
 
