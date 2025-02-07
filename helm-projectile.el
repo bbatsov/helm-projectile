@@ -223,7 +223,9 @@ It is there because Helm requires it."
   :type '(alist :key-type string :value-type function))
 
 (defclass helm-projectile-projects-source (helm-source-sync helm-type-file)
-  ((candidates :initform (lambda () (with-helm-current-buffer (projectile-known-projects))))
+  ((candidates :initform (lambda () (with-helm-current-buffer
+                                      (mapcar #'copy-sequence
+                                              (projectile-known-projects)))))
    (fuzzy-match :initform 'helm-projectile-fuzzy-match)
    (keymap :initform 'helm-projectile-projects-map)
    (mode-line :initform 'helm-read-file-name-mode-line-string)
