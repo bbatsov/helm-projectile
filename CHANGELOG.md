@@ -6,6 +6,7 @@
 
 * Improve `helm-source-proctile-project-list` by also inheriting the `helm-type-file` class to benefit of it's functionality
   such as candidate transformer or file cache.
+* [#180](https://github.com/bbatsov/helm-projectile/pull/180): Introduce `helm-projectile-ignore-strategy` defcustom.
 
 ### Changes
 
