@@ -6,7 +6,7 @@
 ;; URL: https://github.com/bbatsov/helm-projectile
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
-;; Version: 1.1.0-snapshot
+;; Version: 1.1.0
 ;; Package-Requires: ((helm "3.0") (projectile "2.9") (cl-lib "0.3"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -39,16 +39,19 @@
 ;;
 ;;; Code:
 
+;; built-in libraries
 (require 'subr-x)
-(require 'projectile)
 (require 'cl-lib)
-(require 'grep)
+(require 'grep) ;; TODO: Probably we should defer this require
+
 (require 'helm-core)
 (require 'helm-global-bindings)
 (require 'helm-types)
 (require 'helm-locate)
 (require 'helm-buffers)
 (require 'helm-files)
+
+(require 'projectile)
 
 (declare-function eshell "eshell")
 (declare-function helm-do-ag "ext:helm-ag")
