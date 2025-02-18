@@ -237,6 +237,11 @@ It is there because Helm requires it."
   "Helm source for known projectile projects.")
 
 (cl-defmethod helm--setup-source :after ((source helm-projectile-projects-source))
+  "Make SOURCE specific to project switching.
+The `helm-projectile-projects-source` inherits from
+`helm-type-file` (which see), which sets up actions, keymap, and
+help message slots to file specific ones.  Override these slots
+to be specific to `helm-projectile-projects-source'."
   (setf (slot-value source 'action) 'helm-source-projectile-projects-actions)
   (setf (slot-value source 'keymap) helm-projectile-projects-map)
   (setf (slot-value source 'persistent-action) nil)
