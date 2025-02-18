@@ -237,7 +237,12 @@ It is there because Helm requires it."
   "Helm source for known projectile projects.")
 
 (cl-defmethod helm--setup-source :after ((source helm-projectile-projects-source))
-  (setf (slot-value source 'action) 'helm-source-projectile-projects-actions))
+  (setf (slot-value source 'action) 'helm-source-projectile-projects-actions)
+  (setf (slot-value source 'keymap) helm-projectile-projects-map)
+  (setf (slot-value source 'persistent-action) nil)
+  (setf (slot-value source 'persistent-help) "DoNothing")
+  (setf (slot-value source 'header-line) (helm-source--header-line source))
+  (setf (slot-value source 'mode-line) (list "Project(s)" helm-mode-line-string)))
 
 (defvar helm-source-projectile-projects
   (helm-make-source "Projectile projects" 'helm-projectile-projects-source))
