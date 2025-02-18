@@ -244,10 +244,17 @@ help message slots to file specific ones.  Override these slots
 to be specific to `helm-projectile-projects-source'."
   (setf (slot-value source 'action) 'helm-source-projectile-projects-actions)
   (setf (slot-value source 'keymap) helm-projectile-projects-map)
-  (setf (slot-value source 'persistent-action) nil)
-  (setf (slot-value source 'persistent-help) "DoNothing")
-  (setf (slot-value source 'header-line) (helm-source--header-line source))
-  (setf (slot-value source 'mode-line) (list "Project(s)" helm-mode-line-string)))
+  ;; Use `ignore' as a persistent action, to actually keep `helm' session
+  ;; when `helm-execute-persistent-action' is executed.
+  (setf (slot-value source 'persistent-action) #'ignore)
+  (let ((persistent-help "Do Nothing"))
+    (setf (slot-value source 'persistent-help) persistent-help)
+    (setf (slot-value source 'header-line)
+          (helm-source--persistent-help-string
+           persistent-help
+           source)))
+  (setf (slot-value source 'mode-line)
+        (list "Project(s)" helm-mode-line-string)))
 
 (defvar helm-source-projectile-projects
   (helm-make-source "Projectile projects" 'helm-projectile-projects-source))
