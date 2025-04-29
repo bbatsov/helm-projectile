@@ -880,11 +880,11 @@ When set to `search-tool', the above does not happen."
 
 (defun helm-projectile--ignored-files ()
   "Compute ignored files."
-  (cl-union (projectile-ignored-files-rel) grep-find-ignored-files))
+  (cl-union (projectile-ignored-files-rel) grep-find-ignored-files :test #'string-equal))
 
 (defun helm-projectile--ignored-directories ()
   "Compute ignored directories."
-  (cl-union (projectile-ignored-directories-rel) grep-find-ignored-directories))
+  (cl-union (projectile-ignored-directories-rel) grep-find-ignored-directories :test #'string-equal))
 
 (defcustom helm-projectile-grep-or-ack-actions
   '("Find file" helm-grep-action
