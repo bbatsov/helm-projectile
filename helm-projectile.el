@@ -1064,6 +1064,18 @@ OPTIONS explicit command line arguments to ag"
 STRING the string in which to escape special characters."
   (replace-regexp-in-string "[]*?[]" "\\\\\\&" string))
 
+(defun helm-projectile-rg--extra-args ()
+  "Calculate a value for helm-rg--extra-args."
+  (mapconcat
+   'identity
+   (cl-union (mapcan (lambda (path)
+                       (list "--glob" (concat "!" (glob-quote path))))
+                     (helm-projectile--ignored-files))
+             (mapcan (lambda (path)
+                       (list "--glob" (concat "!" (glob-quote path) "/**")))
+                     (mapcar 'directory-file-name (helm-projectile--ignored-directories))))
+   " "))
+
 ;;;###autoload
 (defun helm-projectile-rg ()
   "Projectile version of `helm-rg'."
@@ -1072,18 +1084,9 @@ STRING the string in which to escape special characters."
       (if (projectile-project-p)
           (let* ((helm-rg-prepend-file-name-line-at-top-of-matches nil)
                  (helm-rg-include-file-on-every-match-line t)
-                 (default-directory (projectile-project-root)))
-            (when (helm-projectile--projectile-ignore-strategy)
-              (setq helm-rg--extra-args
-                    (mapconcat
-                     'identity
-                     (cl-union (mapcan (lambda (path)
-                                         (list "--glob" (concat "!" (glob-quote path))))
-                                       (helm-projectile--ignored-files))
-                               (mapcan (lambda (path)
-                                         (list "--glob" (concat "!" (glob-quote path) "/**")))
-                                       (mapcar 'directory-file-name (helm-projectile--ignored-directories))))
-                     " ")))
+                 (default-directory (projectile-project-root))
+                 (helm-rg--extra-args (when (helm-projectile--projectile-ignore-strategy)
+                                        (helm-projectile-rg--extra-args))))
             (helm-rg (helm-projectile-rg--region-selection)
                      nil))
         (error "You're not in a project"))
