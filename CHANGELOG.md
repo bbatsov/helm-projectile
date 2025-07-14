@@ -5,7 +5,7 @@
 * [#173](https://github.com/bbatsov/helm-projectile/pull/173), [#194](https://github.com/bbatsov/helm-projectile/pull/194): Respect helm-buffer-max-length if it's nil
 
 ### Bugs fixed
-
+* [#189](https://github.com/bbatsov/helm-projectile/pull/192): Fix helm-projectile-rg specifying incorrect extra args.
 * [#188](https://github.com/bbatsov/helm-projectile/pull/178): Fix helm-projectile-projects-source slots
 
 ## 1.1.0 (2025-02-14)
