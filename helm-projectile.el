@@ -1059,11 +1059,6 @@ OPTIONS explicit command line arguments to ag"
         (buffer-substring-no-properties (region-beginning) (region-end))
       (helm-rg--get-thing-at-pt))))
 
-(defun glob-quote (string)
-  "Quote the special glob characters: *, ?, [, and ].
-STRING the string in which to escape special characters."
-  (replace-regexp-in-string "[]*?[]" "\\\\\\&" string))
-
 ;;;###autoload
 (defun helm-projectile-rg ()
   "Projectile version of `helm-rg'."
@@ -1074,16 +1069,18 @@ STRING the string in which to escape special characters."
                  (helm-rg-include-file-on-every-match-line t)
                  (default-directory (projectile-project-root)))
             (when (helm-projectile--projectile-ignore-strategy)
-              (setq helm-rg--extra-args
-                    (mapconcat
-                     'identity
-                     (cl-union (mapcan (lambda (path)
-                                         (list "--glob" (concat "!" (glob-quote path))))
-                                       (helm-projectile--ignored-files))
-                               (mapcan (lambda (path)
-                                         (list "--glob" (concat "!" (glob-quote path) "/**")))
-                                       (mapcar 'directory-file-name (helm-projectile--ignored-directories))))
-                     " ")))
+              (setq helm-rg--extra-args 
+                (mapcan (lambda (path) (list "--glob" path))
+                  (cl-union (mapcar (lambda (path)
+                                      (concat "!" path))
+                              (helm-projectile--ignored-files))
+                    (mapcar (lambda (path)
+                              (concat "!" path "/**"))
+                      (mapcar 'directory-file-name (helm-projectile--ignored-directories)))
+                    )
+                  )
+                )
+              )
             (helm-rg (helm-projectile-rg--region-selection)
                      nil))
         (error "You're not in a project"))
