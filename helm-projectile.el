@@ -50,13 +50,12 @@
 (require 'helm-locate)
 (require 'helm-buffers)
 (require 'helm-files)
+(require 'helm-grep)
 
 (require 'projectile)
 
 (declare-function eshell "eshell")
-(declare-function helm-do-ag "ext:helm-ag")
 (declare-function dired-get-filename "dired")
-(defvar helm-ag-base-command)
 
 (defvar grep-find-ignored-directories)
 (defvar grep-find-ignored-files)
@@ -902,11 +901,9 @@ The contents of this list are passed as the arguments to `helm-make-actions'."
 (defcustom helm-projectile-set-input-automatically t
   "If non-nil, attempt to set search input automatically.
 Automatic input selection uses the region (if there is an active
-region), otherwise it uses the current symbol at point (if there
-is one).  Applies to `helm-projectile-grep' and
-`helm-projectile-ack' only.  If the `helm-ag' package is
-installed, then automatic input behavior for `helm-projectile-ag'
-can be customized using `helm-ag-insert-at-point'."
+region), otherwise it uses the current symbol at point (if there is
+one).  Applies to `helm-projectile-grep', `helm-projectile-ack', and
+`helm-projectile-ag'."
   :group 'helm-projectile
   :type 'boolean)
 
@@ -1019,33 +1016,45 @@ DIR directory where to search"
 
 (defun helm-projectile-ag (&optional options)
   "Helm version of `projectile-ag'.
-OPTIONS explicit command line arguments to ag"
-  (interactive (if current-prefix-arg (list (helm-read-string "option: " "" 'helm-ag--extra-options-history))))
-  (if (require 'helm-ag nil t)
-      (if (projectile-project-p)
-          (progn
-            (when (helm-projectile--projectile-ignore-strategy)
-              (setq grep-find-ignored-files (helm-projectile--ignored-files)
-                    grep-find-ignored-directories (helm-projectile--ignored-directories)))
-            (let* ((ignored (when (helm-projectile--projectile-ignore-strategy)
-                              (mapconcat (lambda (i)
-                                           (concat "--ignore " i))
-                                         (append grep-find-ignored-files
-                                                 grep-find-ignored-directories
-                                                 (cadr (projectile-parse-dirconfig-file)))
-                                         " ")))
-                   (helm-ag-base-command (concat helm-ag-base-command
-                                                 (when ignored (concat " " ignored))
-                                                 " " options))
-                   (current-prefix-arg nil))
-              (helm-do-ag (projectile-project-root) (car (projectile-parse-dirconfig-file)))))
-        (error "You're not in a project"))
-    (when (yes-or-no-p "`helm-ag' is not installed. Install? ")
-      (condition-case nil
-          (progn
-            (package-install 'helm-ag)
-            (helm-projectile-ag options))
-        (error (error "`helm-ag' is not available.  Is MELPA in your `package-archives'?"))))))
+OPTIONS are explicit command line arguments to `helm-grep-ag-command'.
+When called with a single or a triple prefix argument, ask for OPTIONS.
+When called with a double or a triple prefix argument, ask for TYPES (see
+`helm-grep-ag').'
+
+This command uses `helm-grep-ag' to perform the search, so the actual
+searcher used is determined by the value of `helm-grep-ag-command'."
+  (interactive (if (member current-prefix-arg '((4) (64)))
+                   (list (helm-read-string "option: " ""
+                                           'helm-ag--extra-options-history))))
+  (if (projectile-project-p)
+      (progn
+        (when (helm-projectile--projectile-ignore-strategy)
+          (setq grep-find-ignored-files (helm-projectile--ignored-files)
+                grep-find-ignored-directories (helm-projectile--ignored-directories)))
+        (let* ((ignored (when (helm-projectile--projectile-ignore-strategy)
+                          (mapconcat (lambda (i)
+                                       (helm-acase (helm-grep--ag-command)
+                                         ;; `helm-grep-ag-command' suggests
+                                         ;; that PT is obsolete, but support
+                                         ;; still persist in Helm. Likely
+                                         ;; remove after Helm drops support.
+                                         (("ag" "pt")
+                                          (concat "--ignore " (shell-quote-argument i)))
+                                         ("rg"
+                                          (concat "--iglob !" (shell-quote-argument i)))))
+                                     (append grep-find-ignored-files
+                                             grep-find-ignored-directories
+                                             (cadr (projectile-parse-dirconfig-file)))
+                                     " ")))
+               (helm-grep-ag-command (format helm-grep-ag-command
+                                             (mapconcat #'identity
+                                                        (delq nil (list ignored options "%s"))
+                                                        " ")
+                                             "%s" "%s"))
+               (with-types (member current-prefix-arg '((16) (64))))
+               (current-prefix-arg nil))
+          (helm-grep-ag (projectile-project-root) with-types)))
+    (error "You're not in a project")))
 
 ;; Declare/define these to satisfy the byte compiler
 (defvar helm-rg-prepend-file-name-line-at-top-of-matches)
