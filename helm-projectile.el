@@ -1056,6 +1056,31 @@ searcher used is determined by the value of `helm-grep-ag-command'."
           (helm-grep-ag (projectile-project-root) with-types)))
     (error "You're not in a project")))
 
+
+(defun helm-projectile--ag-automatic-input (args)
+  "Use active region or a symbol at point as a third element in ARGS.
+This function has been designed as an advice to `helm-grep-ag-1'.  Do not
+use directly."
+  (pcase-let ((`(,directory ,type ,input) args))
+    (list directory
+          type
+          (or input
+              (when helm-projectile-set-input-automatically
+                (if (region-active-p)
+                    (buffer-substring-no-properties (region-beginning) (region-end))
+                  (thing-at-point 'symbol)))))))
+
+;; When calling `helm', the function `helm-grep-ag' uses symbol at point as an
+;; argument `:default-input' (via `helm-sources-using-default-as-input').  This
+;; however sets argument `:input' to an empty string.  As a result the shell
+;; command `ag' (or `rg', or `pt') is being run with the active region or a
+;; symbol at point as a search pattern, but typing in minibuffer starts search
+;; from scratch.  This advice will use symbol active region or a symbol point
+;; as an `input' argument to `helm-grep-ag-1', which will ensure both `helm'
+;; arguments `:default-input' and `:input' are populated.
+(advice-add #'helm-grep-ag-1
+            :filter-args #'helm-projectile--ag-automatic-input)
+
 ;; Declare/define these to satisfy the byte compiler
 (defvar helm-rg-prepend-file-name-line-at-top-of-matches)
 (defvar helm-rg-include-file-on-every-match-line)
