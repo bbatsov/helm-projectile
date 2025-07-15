@@ -879,11 +879,13 @@ When set to `search-tool', the above does not happen."
 
 (defun helm-projectile--ignored-files ()
   "Compute ignored files."
-  (cl-union (projectile-ignored-files-rel) grep-find-ignored-files))
+  (cl-union (projectile-ignored-files-rel) grep-find-ignored-files
+            :test #'equal))
 
 (defun helm-projectile--ignored-directories ()
   "Compute ignored directories."
-  (cl-union (projectile-ignored-directories-rel) grep-find-ignored-directories))
+  (cl-union (projectile-ignored-directories-rel) grep-find-ignored-directories
+            :test #'equal))
 
 (defcustom helm-projectile-grep-or-ack-actions
   '("Find file" helm-grep-action
@@ -1003,7 +1005,8 @@ DIR directory where to search"
                                (mapcar (lambda (path)
                                          (concat "--ignore-file=match:" (shell-quote-argument path)))
                                        (append (helm-projectile--ignored-files)
-                                               (projectile-patterns-to-ignore))))
+                                               (projectile-patterns-to-ignore)))
+                               :test #'equal)
                      " ")))
          (helm-ack-grep-executable (cond
                                     ((executable-find "ack") "ack")
@@ -1103,18 +1106,17 @@ use directly."
                  (helm-rg-include-file-on-every-match-line t)
                  (default-directory (projectile-project-root)))
             (when (helm-projectile--projectile-ignore-strategy)
-              (setq helm-rg--extra-args 
+              (setq helm-rg--extra-args
                 (mapcan (lambda (path) (list "--glob" path))
-                  (cl-union (mapcar (lambda (path)
-                                      (concat "!" path))
-                              (helm-projectile--ignored-files))
-                    (mapcar (lambda (path)
+                  (cl-union
+                   (mapcar (lambda (path)
+                             (concat "!" path))
+                           (helm-projectile--ignored-files))
+                   (mapcar (lambda (path)
                               (concat "!" path "/**"))
-                      (mapcar 'directory-file-name (helm-projectile--ignored-directories)))
-                    )
-                  )
-                )
-              )
+                            (mapcar 'directory-file-name
+                                    (helm-projectile--ignored-directories)))
+                   :test #'equal))))
             (helm-rg (helm-projectile-rg--region-selection)
                      nil))
         (error "You're not in a project"))
