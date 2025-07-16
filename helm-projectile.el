@@ -342,6 +342,7 @@ This is a persistent action for file-related functionality."
     (helm-set-attr 'current-candidate candidate)))
 
 (defun helm-projectile-find-files-eshell-command-on-file-action (candidate)
+  "Execute an eshell command on a file CANDIDATE."
   (interactive)
   (let* ((helm-ff-default-directory (file-name-directory candidate)))
     (helm-find-files-eshell-command-on-file candidate)))
