@@ -749,16 +749,14 @@ Meant to be added to `helm-cleanup-hook', from which it removes
   "Command to execute when performing `helm-grep' inside a projectile git project.
 See documentation of `helm-grep-default-command' for the format."
   :type 'string
-  :group 'helm-projectile
-  )
+  :group 'helm-projectile)
 
 (defcustom helm-projectile-grep-command
   "grep -a -r %e -n%cH -e %p %f ."
   "Command to execute when performing `helm-grep' outside a projectile git project.
 See documentation of `helm-grep-default-command' for the format."
   :type 'string
-  :group 'helm-projectile
-  )
+  :group 'helm-projectile)
 
 
 (defcustom helm-projectile-sources-list
