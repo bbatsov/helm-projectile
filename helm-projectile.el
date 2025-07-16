@@ -1126,7 +1126,7 @@ use directly."
             (helm-rg (helm-projectile-rg--region-selection)
                      nil))
         (error "You're not in a project"))
-    (when (yes-or-no-p "`helm-rg' is not installed. Install? ")
+    (when (yes-or-no-p "`helm-rg' is not installed.  Install it? ")
       (condition-case nil
           (progn
             (package-install 'helm-rg)
