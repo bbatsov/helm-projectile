@@ -917,13 +917,16 @@ ACK-IGNORED-PATTERN is a file regex to exclude from searching.
 ACK-EXECUTABLE is the actual ack binary name.
 It is usually \"ack\" or \"ack-grep\".
 If it is nil, or ack/ack-grep not found then use default grep command."
-  (when (helm-projectile--projectile-ignore-strategy)
-    (setq helm-grep-ignored-files (helm-projectile--ignored-files)
-          helm-grep-ignored-directories (mapcar 'directory-file-name (helm-projectile--ignored-directories))))
-
   (let* ((default-directory (or dir (projectile-project-root)))
          (helm-ff-default-directory default-directory)
          (helm-grep-in-recurse t)
+         (helm-grep-ignored-files (if (helm-projectile--projectile-ignore-strategy)
+                                      (helm-projectile--ignored-files)
+                                    helm-grep-ignored-files))
+         (helm-grep-ignored-directories (if (helm-projectile--projectile-ignore-strategy)
+                                            (mapcar 'directory-file-name
+                                                    (helm-projectile--ignored-directories))
+                                          helm-grep-ignored-directories))
          (helm-grep-default-command (if use-ack-p
                                         (concat ack-executable " -H --no-group --no-color "
                                                 (when ack-ignored-pattern (concat ack-ignored-pattern " "))
@@ -1030,33 +1033,29 @@ searcher used is determined by the value of `helm-grep-ag-command'."
                    (list (helm-read-string "option: " ""
                                            'helm-ag--extra-options-history))))
   (if (projectile-project-p)
-      (progn
-        (when (helm-projectile--projectile-ignore-strategy)
-          (setq grep-find-ignored-files (helm-projectile--ignored-files)
-                grep-find-ignored-directories (helm-projectile--ignored-directories)))
-        (let* ((ignored (when (helm-projectile--projectile-ignore-strategy)
-                          (mapconcat (lambda (i)
-                                       (helm-acase (helm-grep--ag-command)
-                                         ;; `helm-grep-ag-command' suggests
-                                         ;; that PT is obsolete, but support
-                                         ;; still persist in Helm. Likely
-                                         ;; remove after Helm drops support.
-                                         (("ag" "pt")
-                                          (concat "--ignore " (shell-quote-argument i)))
-                                         ("rg"
-                                          (concat "--iglob !" (shell-quote-argument i)))))
-                                     (append grep-find-ignored-files
-                                             grep-find-ignored-directories
-                                             (cadr (projectile-parse-dirconfig-file)))
-                                     " ")))
-               (helm-grep-ag-command (format helm-grep-ag-command
-                                             (mapconcat #'identity
-                                                        (delq nil (list ignored options "%s"))
-                                                        " ")
-                                             "%s" "%s"))
-               (with-types (member current-prefix-arg '((16) (64))))
-               (current-prefix-arg nil))
-          (helm-grep-ag (projectile-project-root) with-types)))
+      (let* ((ignored (when (helm-projectile--projectile-ignore-strategy)
+                        (mapconcat (lambda (i)
+                                     (helm-acase (helm-grep--ag-command)
+                                       ;; `helm-grep-ag-command' suggests
+                                       ;; that PT is obsolete, but support
+                                       ;; still persist in Helm. Likely
+                                       ;; remove after Helm drops support.
+                                       (("ag" "pt")
+                                        (concat "--ignore " (shell-quote-argument i)))
+                                       ("rg"
+                                        (concat "--iglob !" (shell-quote-argument i)))))
+                                   (append grep-find-ignored-files
+                                           grep-find-ignored-directories
+                                           (cadr (projectile-parse-dirconfig-file)))
+                                   " ")))
+             (helm-grep-ag-command (format helm-grep-ag-command
+                                           (mapconcat #'identity
+                                                      (delq nil (list ignored options "%s"))
+                                                      " ")
+                                           "%s" "%s"))
+             (with-types (member current-prefix-arg '((16) (64))))
+             (current-prefix-arg nil))
+        (helm-grep-ag (projectile-project-root) with-types))
     (error "You're not in a project")))
 
 
