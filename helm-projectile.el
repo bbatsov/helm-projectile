@@ -1095,6 +1095,7 @@ use directly."
 (declare-function helm-rg--get-thing-at-pt "ext:helm-rg")
 
 (defun helm-projectile-rg--region-selection ()
+  "Return a default input for `helm-rg'."
   (when helm-projectile-set-input-automatically
     (if (region-active-p)
         (buffer-substring-no-properties (region-beginning) (region-end))
