@@ -1018,7 +1018,7 @@ DIR directory where to search"
          (helm-ack-grep-executable (cond
                                     ((executable-find "ack") "ack")
                                     ((executable-find "ack-grep") "ack-grep")
-                                    (t (error "ack or ack-grep is not available")))))
+                                    (t (error "Neither 'ack' nor 'ack-grep' is available")))))
     (funcall 'run-with-timer 0.01 nil
              #'helm-projectile-grep-or-ack project-root t ignored helm-ack-grep-executable)))
 
