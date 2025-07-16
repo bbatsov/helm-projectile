@@ -1172,7 +1172,10 @@ use directly."
 
 ;;;###autoload
 (defun helm-projectile-toggle (toggle)
-  "Toggle Helm version of Projectile commands."
+  "Toggle Helm version of Projectile commands.
+When TOGGLE is greater than 0 turn Helm version of Projectile commands
+on.  When TOGGLE is is less or equal to 0 turn Helm version of commands
+off."
   (if (> toggle 0)
       (progn
         (when (eq projectile-switch-project-action #'projectile-find-file)
