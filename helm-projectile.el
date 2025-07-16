@@ -360,7 +360,7 @@ Previews the contents of a file in a temporary buffer."
     (helm-ff-switch-to-shell dir)))
 
 (defun helm-projectile-files-in-current-dired-buffer ()
-  "Return a list of files (only) in the current dired buffer."
+  "Return a list of files (only) in the current Dired buffer."
   (let (flist)
     (cl-flet ((fpush (fname) (push fname flist)))
       (save-excursion
