@@ -1087,6 +1087,7 @@ use directly."
 ;; Declare/define these to satisfy the byte compiler
 (defvar helm-rg-prepend-file-name-line-at-top-of-matches)
 (defvar helm-rg-include-file-on-every-match-line)
+(defvar helm-rg--extra-args)
 (declare-function helm-rg "ext:helm-rg")
 (declare-function helm-rg--get-thing-at-pt "ext:helm-rg")
 
@@ -1104,19 +1105,21 @@ use directly."
       (if (projectile-project-p)
           (let* ((helm-rg-prepend-file-name-line-at-top-of-matches nil)
                  (helm-rg-include-file-on-every-match-line t)
-                 (default-directory (projectile-project-root)))
-            (when (helm-projectile--projectile-ignore-strategy)
-              (setq helm-rg--extra-args
-                (mapcan (lambda (path) (list "--glob" path))
-                  (cl-union
-                   (mapcar (lambda (path)
-                             (concat "!" path))
-                           (helm-projectile--ignored-files))
-                   (mapcar (lambda (path)
-                              (concat "!" path "/**"))
-                            (mapcar 'directory-file-name
-                                    (helm-projectile--ignored-directories)))
-                   :test #'equal))))
+                 (default-directory (projectile-project-root))
+                 (helm-rg--extra-args
+                  (if (helm-projectile--projectile-ignore-strategy)
+                      (mapcan (lambda (path) (list "--glob" path))
+                              (cl-union
+                               (mapcar (lambda (path)
+                                         (concat "!" path))
+                                       (helm-projectile--ignored-files))
+                               (mapcar (lambda (path)
+                                         (concat "!" path "/**"))
+                                       (mapcar 'directory-file-name
+                                               (helm-projectile--ignored-directories)))
+                               :test #'equal))
+                    helm-rg--extra-args)))
+
             (helm-rg (helm-projectile-rg--region-selection)
                      nil))
         (error "You're not in a project"))
