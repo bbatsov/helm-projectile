@@ -1135,6 +1135,7 @@ use directly."
         (error "`helm-rg' is not available.  Is MELPA in your `package-archives'?")))))
 
 (defun helm-projectile-commander-bindings ()
+  "Define Helm versions of Projectile commands in `projectile-commander'."
   (def-projectile-commander-method ?a
     "Run ack on project."
     (call-interactively 'helm-projectile-ack))
