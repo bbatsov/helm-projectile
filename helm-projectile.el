@@ -86,19 +86,23 @@ This needs to be set before loading helm-projectile.el."
   :group 'helm-projectile
   :type 'boolean)
 
-(defmacro helm-projectile-define-key (keymap key def &rest bindings)
-  "In KEYMAP, define KEY - DEF sequence KEY1 as DEF1, KEY2 as DEF2 ..."
+(defmacro helm-projectile-define-key (keymap &rest bindings)
+  "In KEYMAP, define BINDINGS.
+BINDINS is a list in a form of (KEY1 DEF1 KEY2 DEF2 ...)."
   (declare (indent defun))
+  (when (or (< (length bindings) 2)
+            (= 1 (% 2 (length bindings))))
+    (error "Expected BINDINGS to be KEY1 DEF1 KEY2 DEF2 ... "))
   (let ((ret '(progn)))
-    (while key
+    (while-let ((key (car bindings))
+                (def (cadr bindings)))
       (push
        `(define-key ,keymap ,key
-          (lambda ()
-            (interactive)
-            (helm-exit-and-execute-action ,def)))
+                    (lambda ()
+                      (interactive)
+                      (helm-exit-and-execute-action ,def)))
        ret)
-      (setq key (pop bindings)
-            def (pop bindings)))
+      (setq bindings (cddr bindings)))
     (reverse ret)))
 
 (defun helm-projectile-hack-actions (actions &rest prescription)
