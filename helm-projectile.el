@@ -298,8 +298,8 @@ to be specific to `helm-projectile-projects-source'."
     "Helm source for dirty version controlled projectile projects.")
 
 (defun helm-projectile-get-dirty-projects ()
-  "Return dirty version controlled known projects as an alist to
-have a nice display in Helm."
+  "Return dirty version controlled known projects.
+The value is returned as an alist to have a nice display in Helm."
   (message "Checking for dirty known projects...")
   (let* ((status (projectile-check-vcs-status-of-known-projects))
          (proj-dir (cl-loop for stat in status
