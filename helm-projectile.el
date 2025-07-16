@@ -348,6 +348,8 @@ This is a persistent action for file-related functionality."
     (helm-find-files-eshell-command-on-file candidate)))
 
 (defun helm-projectile-ff-etags-select-action (candidate)
+  "Jump to etags for file CANDIDATE.
+See also `helm-etags-select'."
   (interactive)
   (let* ((helm-ff-default-directory (file-name-directory candidate)))
     (helm-ff-etags-select candidate)))
