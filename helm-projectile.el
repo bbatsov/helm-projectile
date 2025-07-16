@@ -320,9 +320,8 @@ The value is returned as an alist to have a nice display in Helm."
     (helm-run-after-exit 'helm-projectile-find-file nil)))
 
 (defun helm-projectile-file-persistent-action (candidate)
-  "Persistent action for file-related functionality.
-
-Previews the contents of a file in a temporary buffer."
+  "Previews the contents of a file CANDIDATE in a temporary buffer.
+This is a persistent action for file-related functionality."
   (let ((buf (get-buffer-create " *helm-projectile persistent*")))
     (cl-flet ((preview (candidate)
                        (switch-to-buffer buf)
