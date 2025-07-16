@@ -2,10 +2,13 @@
 
 ## master (unreleased)
 
+### Changes
+
 * [#193](https://github.com/bbatsov/helm-projectile/issues/193), [#195](https://github.com/bbatsov/helm-projectile/pull/195): Switch  to use built-in `helm-grep-ag`
-* [#173](https://github.com/bbatsov/helm-projectile/pull/173), [#194](https://github.com/bbatsov/helm-projectile/pull/194): Respect helm-buffer-max-length if it's nil
 
 ### Bugs fixed
+
+* [#173](https://github.com/bbatsov/helm-projectile/pull/173), [#194](https://github.com/bbatsov/helm-projectile/pull/194): Respect helm-buffer-max-length if it's nil
 * [#189](https://github.com/bbatsov/helm-projectile/pull/192): Fix helm-projectile-rg specifying incorrect extra args.
 * [#188](https://github.com/bbatsov/helm-projectile/pull/178): Fix helm-projectile-projects-source slots
 
