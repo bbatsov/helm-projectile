@@ -134,6 +134,11 @@ function name FUNCTION will change it's description to
 DESCRIPTION.  Otherwise, (FUNCTION . DESCRIPTION) will be added to
 the action list.
 
+If an INSTRUCTION is of the form \(FUNCTION . :make-first\), and if the
+an action with function name FUNCTION exists in the th Helm action list
+concatenated with new actions from PRESCRIPTION, the action will become
+the first (default) action.
+
 Please check out how `helm-projectile-file-actions' is defined
 for an example of how this function is being used."
   (let* ((to-delete (cl-remove-if (lambda (entry) (listp entry)) prescription))
@@ -142,9 +147,9 @@ for an example of how this function is being used."
          new)
     (cl-dolist (action actions)
       (when (setq new (cdr (assq (cdr action) prescription)))
-        (if (stringp new)
-            (setcar action new)
-          (setcdr action new))))
+        (cond
+         ((stringp new) (setcar action new))
+         ((functionp new) (setcdr action new)))))
     ;; Add new actions from PRESCRIPTION
     (setq new nil)
     (cl-dolist (instruction prescription)
@@ -152,7 +157,16 @@ for an example of how this function is being used."
                  (null (rassq (car instruction) actions))
                  (symbolp (car instruction)) (stringp (cdr instruction)))
         (push (cons (cdr instruction) (car instruction)) new)))
-    (append actions (nreverse new))))
+    ;; Push to front the desired action
+    (let ((actions (append actions (nreverse new))))
+      (if-let* ((first-function (car (rassq :make-first prescription)))
+                (first-action-p (lambda (action)
+                                  (eq (cdr action)
+                                      first-function)))
+                (first-action (cl-find-if first-action-p actions)))
+          (cons first-action
+                (cl-remove-if first-action-p actions))
+        actions))))
 
 (defun helm-projectile-vc (dir)
   "A Helm action for jumping to project root using `vc-dir' or Magit.
@@ -720,15 +734,43 @@ Meant to be added to `helm-cleanup-hook', from which it removes
     :initform
     "Show this buffer / C-u \\[helm-execute-persistent-action]: Kill this buffer")))
 
-(defvar helm-source-projectile-buffers-list (helm-make-source "Project buffers" 'helm-source-projectile-buffer))
+(defvar helm-source-projectile-buffers-list
+  (helm-make-source "Project buffers" 'helm-source-projectile-buffer))
+
+(defclass helm-source-projectile-buffer-other-window (helm-source-projectile-buffer)
+  ())
+
+(cl-defmethod helm-setup-user-source ((source helm-source-projectile-buffer-other-window))
+  "Make `helm-buffer-switch-buffers-other-window' first action in SOURCE."
+  (setf (slot-value source 'action)
+        (helm-projectile-hack-actions
+         helm-type-buffer-actions
+         '(helm-buffer-switch-buffers-other-window . :make-first))))
+
+(defvar helm-source-projectile-buffers-other-window-list
+  (helm-make-source "Project buffers" 'helm-source-projectile-buffer-other-window))
+
+(defclass helm-source-projectile-buffer-other-frame (helm-source-projectile-buffer)
+  ())
+
+(cl-defmethod helm-setup-user-source ((source helm-source-projectile-buffer-other-frame))
+  "Make `helm-buffer-switch-to-buffer-other-frame' first action in SOURCE."
+  (setf
+   (slot-value source 'action)
+   (helm-projectile-hack-actions
+    helm-type-buffer-actions
+    '(helm-buffer-switch-to-buffer-other-frame . :make-first))))
+
+(defvar helm-source-projectile-buffers-other-frame-list
+  (helm-make-source "Project buffers" 'helm-source-projectile-buffer-other-frame))
 
 (defvar helm-source-projectile-recentf-list
   (helm-build-sync-source "Projectile recent files"
     :candidates (lambda ()
                   (when (projectile-project-p)
-                   (with-helm-current-buffer
-                     (helm-projectile--files-display-real (projectile-recentf-files)
-                                                          (projectile-project-root)))))
+                    (with-helm-current-buffer
+                      (helm-projectile--files-display-real (projectile-recentf-files)
+                                                           (projectile-project-root)))))
     :fuzzy-match helm-projectile-fuzzy-match
     :keymap helm-projectile-find-file-map
     :help-message 'helm-ff-help-message
@@ -801,7 +843,15 @@ With a prefix ARG invalidates the cache first."
 (helm-projectile-command "find-file-in-known-projects" 'helm-source-projectile-files-in-all-projects-list "Find file in projects: " t)
 (helm-projectile-command "find-dir" helm-source-projectile-directories-and-dired-list "Find dir: ")
 (helm-projectile-command "recentf" 'helm-source-projectile-recentf-list "Recently visited file: ")
-(helm-projectile-command "switch-to-buffer" 'helm-source-projectile-buffers-list "Switch to buffer: " nil helm-buffers-truncate-lines)
+(helm-projectile-command "switch-to-buffer"
+                         'helm-source-projectile-buffers-list
+                         "Switch to buffer: " nil helm-buffers-truncate-lines)
+(helm-projectile-command "switch-to-buffer-other-window"
+                         'helm-source-projectile-buffers-other-window-list
+                         "Switch to buffer (other window): " nil helm-buffers-truncate-lines)
+(helm-projectile-command "switch-to-buffer-other-frame"
+                         'helm-source-projectile-buffers-other-frame-list
+                         "Switch to buffer (other frame): " nil helm-buffers-truncate-lines)
 (helm-projectile-command "browse-dirty-projects" 'helm-source-projectile-dirty-projects "Select a project: " t)
 
 (defun helm-projectile--files-display-real (files root)
@@ -1190,6 +1240,8 @@ off."
         (define-key projectile-mode-map [remap projectile-switch-project] #'helm-projectile-switch-project)
         (define-key projectile-mode-map [remap projectile-recentf] #'helm-projectile-recentf)
         (define-key projectile-mode-map [remap projectile-switch-to-buffer] #'helm-projectile-switch-to-buffer)
+        (define-key projectile-mode-map [remap projectile-switch-to-buffer-other-window] #'helm-projectile-switch-to-buffer-other-window)
+        (define-key projectile-mode-map [remap projectile-switch-to-buffer-other-frame] #'helm-projectile-switch-to-buffer-other-frame)
         (define-key projectile-mode-map [remap projectile-grep] #'helm-projectile-grep)
         (define-key projectile-mode-map [remap projectile-ack] #'helm-projectile-ack)
         (define-key projectile-mode-map [remap projectile-ag] #'helm-projectile-ag)
@@ -1207,6 +1259,8 @@ off."
       (define-key projectile-mode-map [remap projectile-switch-project] nil)
       (define-key projectile-mode-map [remap projectile-recentf] nil)
       (define-key projectile-mode-map [remap projectile-switch-to-buffer] nil)
+      (define-key projectile-mode-map [remap projectile-switch-to-buffer-other-window] nil)
+      (define-key projectile-mode-map [remap projectile-switch-to-buffer-other-frame] nil)
       (define-key projectile-mode-map [remap projectile-grep] nil)
       (define-key projectile-mode-map [remap projectile-ag] nil)
       (define-key projectile-mode-map [remap projectile-ripgrep] nil)
