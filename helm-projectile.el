@@ -978,15 +978,16 @@ With a prefix ARG invalidates the cache first."
   (cl-loop for display in files
            collect (cons display (expand-file-name display root))))
 
-;;;###autoload
-(defun helm-projectile-find-file-dwim ()
-  "Find file at point based on context."
-  (interactive)
+(defun helm-projectile--find-file-dwim-1 (one-candidate-action actions prompt)
+  "Find file at point based on context.
+Execute ONE-CANDIDATE-ACTION when there is a single file returned by
+`projectile-select-files' (which see).  Otherwise display a Helm with
+ACTIONS and PROMPT with other selected files."
   (let* ((project-root (projectile-project-root))
          (project-files (projectile-current-project-files))
          (files (projectile-select-files project-files)))
     (if (= (length files) 1)
-        (find-file (expand-file-name (car files) (projectile-project-root)))
+        (funcall one-candidate-action (expand-file-name (car files) (projectile-project-root)))
       (helm :sources (helm-build-sync-source "Projectile files"
                        :candidates (if (> (length files) 1)
                                        (helm-projectile--files-display-real files project-root)
@@ -996,12 +997,41 @@ With a prefix ARG invalidates the cache first."
                        :keymap helm-projectile-find-file-map
                        :help-message helm-ff-help-message
                        :mode-line helm-read-file-name-mode-line-string
-                       :action helm-projectile-file-actions
+                       :action actions
                        :persistent-action #'helm-projectile-file-persistent-action
                        :persistent-help "Preview file")
             :buffer "*helm projectile*"
             :truncate-lines helm-projectile-truncate-lines
-            :prompt (projectile-prepend-project-name "Find file: ")))))
+            :prompt (projectile-prepend-project-name prompt)))))
+
+;;;###autoload
+(defun helm-projectile-find-file-dwim ()
+  "Find file at point based on context."
+  (interactive)
+  (helm-projectile--find-file-dwim-1
+   #'find-file helm-projectile-file-actions "Find file: "))
+
+;;;###autoload
+(defun helm-projectile-find-file-dwim-other-window ()
+  "Find file at point based on context."
+  (interactive)
+  (helm-projectile--find-file-dwim-1
+   #'find-file-other-window
+   (helm-projectile-hack-actions
+    helm-projectile-file-actions
+    '(helm-find-files-other-window . :make-first))
+   "Find file (other window): "))
+
+;;;###autoload
+(defun helm-projectile-find-file-dwim-other-frame ()
+  "Find file at point based on context."
+  (interactive)
+  (helm-projectile--find-file-dwim-1
+   #'find-file-other-frame
+   (helm-projectile-hack-actions
+    helm-projectile-file-actions
+    '(find-file-other-frame . :make-first))
+   "Find file (other frame): "))
 
 ;;;###autoload
 (defun helm-projectile-find-other-file (&optional flex-matching)
@@ -1355,6 +1385,8 @@ off."
         (define-key projectile-mode-map [remap projectile-find-file-other-frame] #'helm-projectile-find-file-other-frame)
         (define-key projectile-mode-map [remap projectile-find-file-in-known-projects] #'helm-projectile-find-file-in-known-projects)
         (define-key projectile-mode-map [remap projectile-find-file-dwim] #'helm-projectile-find-file-dwim)
+        (define-key projectile-mode-map [remap projectile-find-file-dwim-other-window] #'helm-projectile-find-file-dwim-other-window)
+        (define-key projectile-mode-map [remap projectile-find-file-dwim-other-frame] #'helm-projectile-find-file-dwim-other-frame)
         (define-key projectile-mode-map [remap projectile-find-dir] #'helm-projectile-find-dir)
         (define-key projectile-mode-map [remap projectile-find-dir-other-window] #'helm-projectile-find-dir)
         (define-key projectile-mode-map [remap projectile-find-dir-other-frame] #'helm-projectile-find-dir)
@@ -1378,6 +1410,8 @@ off."
       (define-key projectile-mode-map [remap projectile-find-file-other-frame] nil)
       (define-key projectile-mode-map [remap projectile-find-file-in-known-projects] nil)
       (define-key projectile-mode-map [remap projectile-find-file-dwim] nil)
+      (define-key projectile-mode-map [remap projectile-find-file-dwim-other-window] nil)
+      (define-key projectile-mode-map [remap projectile-find-file-dwim-other-frame] nil)
       (define-key projectile-mode-map [remap projectile-find-dir] nil)
       (define-key projectile-mode-map [remap projectile-find-dir-other-window] nil)
       (define-key projectile-mode-map [remap projectile-find-dir-other-frame] nil)
