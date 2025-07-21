@@ -2,6 +2,8 @@
 
 ## master (unreleased)
 
+## 1.2.0 (2025-07-21)
+
 ### Changes
 
 * [#193](https://github.com/bbatsov/helm-projectile/issues/193), [#195](https://github.com/bbatsov/helm-projectile/pull/195): Switch  to use built-in `helm-grep-ag`
