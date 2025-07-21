@@ -780,6 +780,34 @@ Meant to be added to `helm-cleanup-hook', from which it removes
   (helm-make-source "Projectile directories" 'helm-source-projectile-directory)
   "Helm source for listing project directories.")
 
+(defclass helm-source-projectile-directory-other-window (helm-source-projectile-directory)
+  ())
+
+(cl-defmethod helm-setup-user-source ((source helm-source-projectile-directory-other-window))
+  "Make `helm-projectile-dired-find-dir-other-window' the first action in SOURCE."
+  (setf (slot-value source 'action)
+        (helm-projectile-hack-actions
+         helm-source-projectile-directory-actions
+         '(helm-projectile-dired-find-dir-other-window . :make-first))))
+
+(defvar helm-source-projectile-directories-other-window-list
+  (helm-make-source "Projectile directories" 'helm-source-projectile-directory-other-window)
+  "Helm source for listing project directories.")
+
+(defclass helm-source-projectile-directory-other-frame (helm-source-projectile-directory)
+  ())
+
+(cl-defmethod helm-setup-user-source ((source helm-source-projectile-directory-other-frame))
+  "Make `helm-projectile-dired-find-dir-other-frame' the first action in SOURCE."
+  (setf (slot-value source 'action)
+        (helm-projectile-hack-actions
+         helm-source-projectile-directory-actions
+         '(helm-projectile-dired-find-dir-other-frame . :make-first))))
+
+(defvar helm-source-projectile-directories-other-frame-list
+  (helm-make-source "Projectile directories" 'helm-source-projectile-directory-other-frame)
+  "Helm source for listing project directories.")
+
 (defvar helm-projectile-buffers-list-cache nil)
 
 (defclass helm-source-projectile-buffer (helm-source-sync helm-type-buffer)
@@ -855,10 +883,6 @@ Meant to be added to `helm-cleanup-hook', from which it removes
     :persistent-help "Preview file")
   "Helm source definition for recent files in current project.")
 
-(defvar helm-source-projectile-directories-and-dired-list
-  '(helm-source-projectile-dired-files-list
-    helm-source-projectile-directories-list))
-
 (defcustom helm-projectile-git-grep-command
   "git --no-pager grep --no-color -n%c -e %p -- %f"
   "Command to execute when performing `helm-grep' inside a projectile git project.
@@ -923,7 +947,18 @@ With a prefix ARG invalidates the cache first."
                            helm-source-projectile-files-other-frame-list)
                          "Find file (other frame): ")
 (helm-projectile-command "find-file-in-known-projects" 'helm-source-projectile-files-in-all-projects-list "Find file in projects: " t)
-(helm-projectile-command "find-dir" helm-source-projectile-directories-and-dired-list "Find dir: ")
+(helm-projectile-command "find-dir"
+                         '(helm-source-projectile-dired-files-list
+                           helm-source-projectile-directories-list)
+                         "Find dir: ")
+(helm-projectile-command "find-dir-other-window"
+                         '(helm-source-projectile-dired-files-other-window-list
+                           helm-source-projectile-directories-other-window-list)
+                         "Find dir (other window): ")
+(helm-projectile-command "find-dir-other-frame"
+                         '(helm-source-projectile-dired-files-other-frame-list
+                           helm-source-projectile-directories-other-frame-list)
+                         "Find dir (other frame): ")
 (helm-projectile-command "recentf" 'helm-source-projectile-recentf-list "Recently visited file: ")
 (helm-projectile-command "switch-to-buffer"
                          'helm-source-projectile-buffers-list
@@ -1321,6 +1356,8 @@ off."
         (define-key projectile-mode-map [remap projectile-find-file-in-known-projects] #'helm-projectile-find-file-in-known-projects)
         (define-key projectile-mode-map [remap projectile-find-file-dwim] #'helm-projectile-find-file-dwim)
         (define-key projectile-mode-map [remap projectile-find-dir] #'helm-projectile-find-dir)
+        (define-key projectile-mode-map [remap projectile-find-dir-other-window] #'helm-projectile-find-dir)
+        (define-key projectile-mode-map [remap projectile-find-dir-other-frame] #'helm-projectile-find-dir)
         (define-key projectile-mode-map [remap projectile-switch-project] #'helm-projectile-switch-project)
         (define-key projectile-mode-map [remap projectile-recentf] #'helm-projectile-recentf)
         (define-key projectile-mode-map [remap projectile-switch-to-buffer] #'helm-projectile-switch-to-buffer)
@@ -1342,6 +1379,8 @@ off."
       (define-key projectile-mode-map [remap projectile-find-file-in-known-projects] nil)
       (define-key projectile-mode-map [remap projectile-find-file-dwim] nil)
       (define-key projectile-mode-map [remap projectile-find-dir] nil)
+      (define-key projectile-mode-map [remap projectile-find-dir-other-window] nil)
+      (define-key projectile-mode-map [remap projectile-find-dir-other-frame] nil)
       (define-key projectile-mode-map [remap projectile-switch-project] nil)
       (define-key projectile-mode-map [remap projectile-recentf] nil)
       (define-key projectile-mode-map [remap projectile-switch-to-buffer] nil)
