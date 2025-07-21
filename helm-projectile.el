@@ -1033,9 +1033,12 @@ ACTIONS and PROMPT with other selected files."
     '(find-file-other-frame . :make-first))
    "Find file (other frame): "))
 
-;;;###autoload
-(defun helm-projectile-find-other-file (&optional flex-matching)
+(defun helm-projectile--find-other-file-1 (one-candidate-action actions prompt flex-matching)
   "Switch between files with the same name but different extensions using Helm.
+Execute ONE-CANDIDATE-ACTION when there is a single file returned by
+`projectile-get-other-files' (which see).  Otherwise display a Helm with
+ACTIONS and PROMPT with other selected files.
+
 With FLEX-MATCHING, match any file that contains the base name of
 current file.  Other file extensions can be customized with the
 variable `projectile-other-file-alist'."
@@ -1045,7 +1048,7 @@ variable `projectile-other-file-alist'."
                                                   flex-matching)))
     (if other-files
         (if (= (length other-files) 1)
-            (find-file (expand-file-name (car other-files) project-root))
+            (funcall one-candidate-action (expand-file-name (car other-files) project-root))
           (progn
             (let* ((helm-ff-transformer-show-only-basename nil))
               (helm :sources (helm-build-sync-source "Projectile other files"
@@ -1053,13 +1056,56 @@ variable `projectile-other-file-alist'."
                                :keymap helm-projectile-find-file-map
                                :help-message helm-ff-help-message
                                :mode-line helm-read-file-name-mode-line-string
-                               :action helm-projectile-file-actions
+                               :action actions
                                :persistent-action #'helm-projectile-file-persistent-action
                                :persistent-help "Preview file")
                     :buffer "*helm projectile*"
                     :truncate-lines helm-projectile-truncate-lines
-                    :prompt (projectile-prepend-project-name "Find other file: ")))))
+                    :prompt (projectile-prepend-project-name prompt)))))
       (error "No other file found"))))
+
+;;;###autoload
+(defun helm-projectile-find-other-file (&optional flex-matching)
+  "Switch between files with the same name but different extensions using Helm.
+With FLEX-MATCHING, match any file that contains the base name of
+current file.  Other file extensions can be customized with the
+variable `projectile-other-file-alist'."
+  (interactive "P")
+  (helm-projectile--find-other-file-1
+   #'find-file
+   helm-projectile-file-actions
+   "Find other file: "
+   flex-matching))
+
+;;;###autoload
+(defun helm-projectile-find-other-file-other-window (&optional flex-matching)
+  "Switch between files with the same name but different extensions using Helm.
+With FLEX-MATCHING, match any file that contains the base name of
+current file.  Other file extensions can be customized with the
+variable `projectile-other-file-alist'."
+  (interactive "P")
+  (helm-projectile--find-other-file-1
+   #'find-file-other-window
+   (helm-projectile-hack-actions
+    helm-projectile-file-actions
+    '(helm-find-files-other-window . :make-first))
+   "Find other file (other window): "
+   flex-matching))
+
+;;;###autoload
+(defun helm-projectile-find-other-file-other-frame (&optional flex-matching)
+  "Switch between files with the same name but different extensions using Helm.
+With FLEX-MATCHING, match any file that contains the base name of
+current file.  Other file extensions can be customized with the
+variable `projectile-other-file-alist'."
+  (interactive "P")
+  (helm-projectile--find-other-file-1
+   #'find-file-other-frame
+   (helm-projectile-hack-actions
+    helm-projectile-file-actions
+    '(find-file-other-frame . :make-first))
+   "Find other file (other frame): "
+   flex-matching))
 
 (defcustom helm-projectile-ignore-strategy 'projectile
   "Allow projectile to compute ignored files and directories.
@@ -1380,6 +1426,8 @@ off."
         (when (eq projectile-switch-project-action #'projectile-find-file)
           (setq projectile-switch-project-action #'helm-projectile-find-file))
         (define-key projectile-mode-map [remap projectile-find-other-file] #'helm-projectile-find-other-file)
+        (define-key projectile-mode-map [remap projectile-find-other-file-other-window] #'helm-projectile-find-other-file-other-window)
+        (define-key projectile-mode-map [remap projectile-find-other-file-other-frame] #'helm-projectile-find-other-file-other-frame)
         (define-key projectile-mode-map [remap projectile-find-file] #'helm-projectile-find-file)
         (define-key projectile-mode-map [remap projectile-find-file-other-window] #'helm-projectile-find-file-other-window)
         (define-key projectile-mode-map [remap projectile-find-file-other-frame] #'helm-projectile-find-file-other-frame)
@@ -1405,6 +1453,8 @@ off."
       (when (eq projectile-switch-project-action #'helm-projectile-find-file)
         (setq projectile-switch-project-action #'projectile-find-file))
       (define-key projectile-mode-map [remap projectile-find-other-file] nil)
+      (define-key projectile-mode-map [remap projectile-find-other-file-other-window] nil)
+      (define-key projectile-mode-map [remap projectile-find-other-file-other-frame] nil)
       (define-key projectile-mode-map [remap projectile-find-file] nil)
       (define-key projectile-mode-map [remap projectile-find-file-other-window] nil)
       (define-key projectile-mode-map [remap projectile-find-file-other-frame] nil)
