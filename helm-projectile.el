@@ -732,8 +732,13 @@ Meant to be added to `helm-cleanup-hook', from which it removes
   (run-hooks 'projectile-find-dir-hook))
 
 (defun helm-projectile-dired-find-dir-other-window (dir)
-  "Jump to a selected directory DIR from `helm-projectile'."
+  "Jump to a selected directory DIR from `helm-projectile' (in other window)."
   (dired-other-window (expand-file-name dir (projectile-project-root)))
+  (run-hooks 'projectile-find-dir-hook))
+
+(defun helm-projectile-dired-find-dir-other-frame (dir)
+  "Jump to a selected directory DIR from `helm-projectile' (in other frame)."
+  (dired-other-frame (expand-file-name dir (projectile-project-root)))
   (run-hooks 'projectile-find-dir-hook))
 
 (defvar helm-source-projectile-directories-list
@@ -753,6 +758,7 @@ Meant to be added to `helm-cleanup-hook', from which it removes
                 (kbd "<left>") #'helm-previous-source
                 (kbd "<right>") #'helm-next-source
                 (kbd "C-c o") #'helm-projectile-dired-find-dir-other-window
+                (kbd "C-c C-o") #'helm-projectile-dired-find-dir-other-frame
                 (kbd "M-e")   #'helm-projectile-switch-to-shell
                 (kbd "C-c f") #'helm-projectile-dired-files-new-action
                 (kbd "C-c a") #'helm-projectile-dired-files-add-action
@@ -762,6 +768,7 @@ Meant to be added to `helm-cleanup-hook', from which it removes
     :mode-line helm-read-file-name-mode-line-string
     :action '(("Open Dired" . helm-projectile-dired-find-dir)
               ("Open Dired in other window `C-c o'" . helm-projectile-dired-find-dir-other-window)
+              ("Open Dired in other frame `C-c C-o'" . helm-projectile-dired-find-dir-other-frame)
               ("Switch to Eshell `M-e'" . helm-projectile-switch-to-shell)
               ("Grep in projects `C-s'" . helm-projectile-grep)
               ("Create Dired buffer from files `C-c f'" . helm-projectile-dired-files-new-action)
