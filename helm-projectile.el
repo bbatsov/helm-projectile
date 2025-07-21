@@ -214,11 +214,31 @@ It is there because Helm requires it."
           (projectile-save-known-projects))
         (message "%s projects(s) removed" len)))))
 
+(defun helm-projectile-switch-project-by-name (project)
+  "Switch to PROJECT and find file in it."
+  (let ((projectile-completion-system 'helm)
+        (projectile-switch-project-action #'helm-projectile-find-file))
+    (projectile-switch-project-by-name project)))
+
+(defun helm-projectile-switch-project-by-name-other-window (project)
+  "Switch to PROJECT and find file in it in other window."
+  (let ((projectile-completion-system 'helm)
+        (projectile-switch-project-action #'helm-projectile-find-file-other-window))
+    (projectile-switch-project-by-name project)))
+
+(defun helm-projectile-switch-project-by-name-other-frame (project)
+  "Switch to PROJECT and find file in it in other frame."
+  (let ((projectile-completion-system 'helm)
+        (projectile-switch-project-action #'helm-projectile-find-file-other-frame))
+    (projectile-switch-project-by-name project)))
+
 (defvar helm-projectile-projects-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map helm-map)
     (helm-projectile-define-key map
       (kbd "C-d") #'dired
+      (kbd "C-c o") #'helm-projectile-switch-project-by-name-other-window
+      (kbd "C-c C-o") #'helm-projectile-switch-project-by-name-other-frame
       (kbd "M-g") #'helm-projectile-vc
       (kbd "M-e") #'helm-projectile-switch-to-shell
       (kbd "C-s") #'helm-projectile-grep
@@ -231,9 +251,9 @@ It is there because Helm requires it."
 
 (defcustom helm-source-projectile-projects-actions
   (helm-make-actions
-   "Switch to project" (lambda (project)
-                         (let ((projectile-completion-system 'helm))
-                           (projectile-switch-project-by-name project)))
+   "Switch to project" #'helm-projectile-switch-project-by-name
+   "Switch to project other window `C-c o'" #'helm-projectile-switch-project-by-name-other-window
+   "Switch to project other frame `C-c C-o'" #'helm-projectile-switch-project-by-name-other-frame
    "Open Dired in project's directory `C-d'" #'dired
    "Open project root in vc-dir or magit `M-g'" #'helm-projectile-vc
    "Switch to Eshell `M-e'" #'helm-projectile-switch-to-shell
