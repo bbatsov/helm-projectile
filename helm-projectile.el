@@ -644,25 +644,28 @@ Meant to be added to `helm-cleanup-hook', from which it removes
    ;; New actions
    '(helm-projectile-dired-files-delete-action . "Remove entry(s) from Dired buffer `C-c d'")))
 
+(defclass helm-source-projectile-dired-file (helm-source-in-buffer)
+  ((data :initform (lambda ()
+                     (if (and (file-remote-p (projectile-project-root))
+                              (not helm-projectile-virtual-dired-remote-enable))
+                         nil
+                       (when (eq major-mode 'dired-mode)
+                         (helm-projectile-files-in-current-dired-buffer)))))
+   (filter-one-by-one :initform (lambda (file)
+                                  (let ((helm-ff-transformer-show-only-basename t))
+                                    (helm-ff-filter-candidate-one-by-one file))))
+   (action-transformer :initform 'helm-find-files-action-transformer)
+   (keymap :initform (let ((map (copy-keymap helm-projectile-find-file-map)))
+                       (helm-projectile-define-key map
+                         (kbd "C-c d") 'helm-projectile-dired-files-delete-action)
+                       map))
+    (help-message :initform 'helm-ff-help-message)
+    (mode-line :initform 'helm-read-file-name-mode-line-string)
+    (action :initform 'helm-projectile-dired-file-actions)))
+
 (defvar helm-source-projectile-dired-files-list
-  (helm-build-in-buffer-source "Projectile files in current Dired buffer"
-    :data (lambda ()
-            (if (and (file-remote-p (projectile-project-root))
-                     (not helm-projectile-virtual-dired-remote-enable))
-                nil
-              (when (eq major-mode 'dired-mode)
-                (helm-projectile-files-in-current-dired-buffer))))
-    :filter-one-by-one (lambda (file)
-                         (let ((helm-ff-transformer-show-only-basename t))
-                           (helm-ff-filter-candidate-one-by-one file)))
-    :action-transformer 'helm-find-files-action-transformer
-    :keymap (let ((map (copy-keymap helm-projectile-find-file-map)))
-              (helm-projectile-define-key map
-                (kbd "C-c d") 'helm-projectile-dired-files-delete-action)
-              map)
-    :help-message 'helm-ff-help-message
-    :mode-line helm-read-file-name-mode-line-string
-    :action helm-projectile-dired-file-actions)
+  (helm-make-source "Projectile files in current Dired buffer"
+    'helm-source-projectile-dired-file)
   "Helm source definition for Projectile delete files.")
 
 (defun helm-projectile-dired-find-dir (dir)
