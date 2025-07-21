@@ -761,7 +761,7 @@ Meant to be added to `helm-cleanup-hook', from which it removes
     :help-message 'helm-ff-help-message
     :mode-line helm-read-file-name-mode-line-string
     :action '(("Open Dired" . helm-projectile-dired-find-dir)
-              ("Open Dired in other window `C-c o'" . helm-projectile-dired-find-dir)
+              ("Open Dired in other window `C-c o'" . helm-projectile-dired-find-dir-other-window)
               ("Switch to Eshell `M-e'" . helm-projectile-switch-to-shell)
               ("Grep in projects `C-s'" . helm-projectile-grep)
               ("Create Dired buffer from files `C-c f'" . helm-projectile-dired-files-new-action)
