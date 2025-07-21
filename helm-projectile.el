@@ -868,7 +868,7 @@ variable `projectile-other-file-alist'."
   "Allow projectile to compute ignored files and directories.
 
 When set to `projectile', the package will compute ignores and
-explicitely add additionally command line arguments to the search
+explicitly add additionally command line arguments to the search
 tool.  Note that this might override search tool specific
 behaviors (for instance ag would not use VCS ignore files).
 
