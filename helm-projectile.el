@@ -254,7 +254,7 @@ It is there because Helm requires it."
    (action :initform 'helm-source-projectile-projects-actions))
   "Helm source for known projectile projects.")
 
-(cl-defmethod helm--setup-source :after ((source helm-projectile-projects-source))
+(cl-defmethod helm-setup-user-source ((source helm-projectile-projects-source))
   "Make SOURCE specific to project switching.
 The `helm-projectile-projects-source` inherits from
 `helm-type-file` (which see), which sets up actions, keymap, and
