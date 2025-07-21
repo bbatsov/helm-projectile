@@ -587,39 +587,41 @@ Meant to be added to `helm-cleanup-hook', from which it removes
     (add-hook 'helm-after-update-hook #'helm-projectile--move-to-real)
     (add-hook 'helm-cleanup-hook #'helm-projectile--remove-move-to-real)))
 
+(defclass helm-source-projectile-file (helm-source-sync)
+  ((before-init-hook :initform 'helm-source-projectile-files-list-before-init-hook)
+   (candidates :initform (lambda ()
+                           (when (projectile-project-p)
+                             (with-helm-current-buffer
+                               (cl-loop with root = (projectile-project-root)
+                                        for display in (projectile-current-project-files)
+                                        collect (cons display (expand-file-name display root)))))))
+    (filtered-candidate-transformer
+     :initform (lambda (files _source)
+                 (with-helm-current-buffer
+                   (let* ((root (projectile-project-root))
+                          (file-at-root (file-relative-name (expand-file-name helm-pattern root))))
+                     (if (or (string-empty-p helm-pattern)
+                             (assoc helm-pattern files))
+                         files
+                       (if (equal helm-pattern file-at-root)
+                           (cl-acons (helm-ff-prefix-filename helm-pattern nil t)
+                                     (expand-file-name helm-pattern)
+                                     files)
+                         (cl-pairlis (list (helm-ff-prefix-filename helm-pattern nil t)
+                                           (helm-ff-prefix-filename file-at-root nil t))
+                                     (list (expand-file-name helm-pattern)
+                                           (expand-file-name helm-pattern root))
+                                     files)))))))
+    (fuzzy-match :initform 'helm-projectile-fuzzy-match)
+    (keymap :initform 'helm-projectile-find-file-map)
+    (help-message :initform 'helm-ff-help-message)
+    (mode-line :initform 'helm-read-file-name-mode-line-string)
+    (action :initform 'helm-projectile-file-actions)
+    (persistent-action :initform #'helm-projectile-file-persistent-action)
+    (persistent-help :initform "Preview file")))
+
 (defvar helm-source-projectile-files-list
-  (helm-build-sync-source "Projectile files"
-    :before-init-hook 'helm-source-projectile-files-list-before-init-hook
-    :candidates (lambda ()
-                  (when (projectile-project-p)
-                    (with-helm-current-buffer
-                      (cl-loop with root = (projectile-project-root)
-                               for display in (projectile-current-project-files)
-                               collect (cons display (expand-file-name display root))))))
-    :filtered-candidate-transformer
-    (lambda (files _source)
-      (with-helm-current-buffer
-        (let* ((root (projectile-project-root))
-               (file-at-root (file-relative-name (expand-file-name helm-pattern root))))
-          (if (or (string-empty-p helm-pattern)
-                  (assoc helm-pattern files))
-              files
-            (if (equal helm-pattern file-at-root)
-                (cl-acons (helm-ff-prefix-filename helm-pattern nil t)
-                          (expand-file-name helm-pattern)
-                          files)
-              (cl-pairlis (list (helm-ff-prefix-filename helm-pattern nil t)
-                                (helm-ff-prefix-filename file-at-root nil t))
-                          (list (expand-file-name helm-pattern)
-                                (expand-file-name helm-pattern root))
-                          files))))))
-    :fuzzy-match helm-projectile-fuzzy-match
-    :keymap helm-projectile-find-file-map
-    :help-message 'helm-ff-help-message
-    :mode-line helm-read-file-name-mode-line-string
-    :action helm-projectile-file-actions
-    :persistent-action #'helm-projectile-file-persistent-action
-    :persistent-help "Preview file")
+  (helm-make-source "Projectile files" 'helm-source-projectile-file)
   "Helm source definition for Projectile files.")
 
 (defvar helm-source-projectile-files-in-all-projects-list
