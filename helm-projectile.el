@@ -624,6 +624,34 @@ Meant to be added to `helm-cleanup-hook', from which it removes
   (helm-make-source "Projectile files" 'helm-source-projectile-file)
   "Helm source definition for Projectile files.")
 
+(defclass helm-source-projectile-file-other-window (helm-source-projectile-file)
+  ())
+
+(cl-defmethod helm-setup-user-source ((source helm-source-projectile-file-other-window))
+  "Make `helm-find-files-other-window' the first action in SOURCE."
+  (setf (slot-value source 'action)
+        (helm-projectile-hack-actions
+         helm-projectile-file-actions
+         '(helm-find-files-other-window . :make-first))))
+
+(defvar helm-source-projectile-files-other-window-list
+  (helm-make-source "Projectile files" 'helm-source-projectile-file-other-window)
+  "Helm source definition for Projectile files.")
+
+(defclass helm-source-projectile-file-other-frame (helm-source-projectile-file)
+  ())
+
+(cl-defmethod helm-setup-user-source ((source helm-source-projectile-file-other-frame))
+  "Make `find-file-other-frame' the first action in SOURCE."
+  (setf (slot-value source 'action)
+        (helm-projectile-hack-actions
+         helm-projectile-file-actions
+         '(find-file-other-frame . :make-first))))
+
+(defvar helm-source-projectile-files-other-frame-list
+  (helm-make-source "Projectile files" 'helm-source-projectile-file-other-frame)
+  "Helm source definition for Projectile files.")
+
 (defvar helm-source-projectile-files-in-all-projects-list
   (helm-build-sync-source "Projectile files in all Projects"
     :candidates (lambda ()
@@ -666,6 +694,36 @@ Meant to be added to `helm-cleanup-hook', from which it removes
 (defvar helm-source-projectile-dired-files-list
   (helm-make-source "Projectile files in current Dired buffer"
     'helm-source-projectile-dired-file)
+  "Helm source definition for Projectile delete files.")
+
+(defclass helm-source-projectile-dired-file-other-window (helm-source-projectile-dired-file)
+  ())
+
+(cl-defmethod helm-setup-user-source ((source helm-source-projectile-dired-file-other-window))
+  "Make `helm-find-files-other-window' the first action in SOURCE."
+  (setf (slot-value source 'action)
+        (helm-projectile-hack-actions
+         helm-projectile-dired-file-actions
+         '(helm-find-files-other-window . :make-first))))
+
+(defvar helm-source-projectile-dired-files-other-window-list
+  (helm-make-source "Projectile files in current Dired buffer"
+    'helm-source-projectile-dired-file-other-window)
+  "Helm source definition for Projectile delete files.")
+
+(defclass helm-source-projectile-dired-file-other-frame (helm-source-projectile-dired-file)
+  ())
+
+(cl-defmethod helm-setup-user-source ((source helm-source-projectile-dired-file-other-frame))
+  "Make `find-file-other-frame' the first action in SOURCE."
+  (setf (slot-value source 'action)
+        (helm-projectile-hack-actions
+         helm-projectile-dired-file-actions
+         '(find-file-other-frame . :make-first))))
+
+(defvar helm-source-projectile-dired-files-other-frame-list
+  (helm-make-source "Projectile files in current Dired buffer"
+    'helm-source-projectile-dired-file-other-frame)
   "Helm source definition for Projectile delete files.")
 
 (defun helm-projectile-dired-find-dir (dir)
@@ -785,10 +843,6 @@ Meant to be added to `helm-cleanup-hook', from which it removes
     :persistent-help "Preview file")
   "Helm source definition for recent files in current project.")
 
-(defvar helm-source-projectile-files-and-dired-list
-  '(helm-source-projectile-dired-files-list
-    helm-source-projectile-files-list))
-
 (defvar helm-source-projectile-directories-and-dired-list
   '(helm-source-projectile-dired-files-list
     helm-source-projectile-directories-list))
@@ -844,7 +898,18 @@ With a prefix ARG invalidates the cache first."
              :prompt (projectile-prepend-project-name ,prompt)))))
 
 (helm-projectile-command "switch-project" 'helm-source-projectile-projects "Switch to project: " t)
-(helm-projectile-command "find-file" helm-source-projectile-files-and-dired-list "Find file: ")
+(helm-projectile-command "find-file"
+                         '(helm-source-projectile-dired-files-list
+                           helm-source-projectile-files-list)
+                         "Find file: ")
+(helm-projectile-command "find-file-other-window"
+                         '(helm-source-projectile-dired-files-other-window-list
+                           helm-source-projectile-files-other-window-list)
+                         "Find file (other window): ")
+(helm-projectile-command "find-file-other-frame"
+                         '(helm-source-projectile-dired-files-other-frame-list
+                           helm-source-projectile-files-other-frame-list)
+                         "Find file (other frame): ")
 (helm-projectile-command "find-file-in-known-projects" 'helm-source-projectile-files-in-all-projects-list "Find file in projects: " t)
 (helm-projectile-command "find-dir" helm-source-projectile-directories-and-dired-list "Find dir: ")
 (helm-projectile-command "recentf" 'helm-source-projectile-recentf-list "Recently visited file: ")
@@ -1239,6 +1304,8 @@ off."
           (setq projectile-switch-project-action #'helm-projectile-find-file))
         (define-key projectile-mode-map [remap projectile-find-other-file] #'helm-projectile-find-other-file)
         (define-key projectile-mode-map [remap projectile-find-file] #'helm-projectile-find-file)
+        (define-key projectile-mode-map [remap projectile-find-file-other-window] #'helm-projectile-find-file-other-window)
+        (define-key projectile-mode-map [remap projectile-find-file-other-frame] #'helm-projectile-find-file-other-frame)
         (define-key projectile-mode-map [remap projectile-find-file-in-known-projects] #'helm-projectile-find-file-in-known-projects)
         (define-key projectile-mode-map [remap projectile-find-file-dwim] #'helm-projectile-find-file-dwim)
         (define-key projectile-mode-map [remap projectile-find-dir] #'helm-projectile-find-dir)
@@ -1258,6 +1325,8 @@ off."
         (setq projectile-switch-project-action #'projectile-find-file))
       (define-key projectile-mode-map [remap projectile-find-other-file] nil)
       (define-key projectile-mode-map [remap projectile-find-file] nil)
+      (define-key projectile-mode-map [remap projectile-find-file-other-window] nil)
+      (define-key projectile-mode-map [remap projectile-find-file-other-frame] nil)
       (define-key projectile-mode-map [remap projectile-find-file-in-known-projects] nil)
       (define-key projectile-mode-map [remap projectile-find-file-dwim] nil)
       (define-key projectile-mode-map [remap projectile-find-dir] nil)
