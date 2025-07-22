@@ -10,6 +10,7 @@
 ### Changes
 
 * Add faces to sources that use files
+* Add autoloads to `helm-projectile` commands defined with `helm-projectile-command`
 
 ## 1.2.0 (2025-07-21)
 
