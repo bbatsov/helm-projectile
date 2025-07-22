@@ -630,36 +630,36 @@ Meant to be added to `helm-cleanup-hook', from which it removes
 
 (defclass helm-source-projectile-file (helm-source-sync)
   ((before-init-hook :initform 'helm-source-projectile-files-list-before-init-hook)
-   (candidates :initform (lambda ()
-                           (when (projectile-project-p)
-                             (with-helm-current-buffer
-                               (cl-loop with root = (projectile-project-root)
-                                        for display in (projectile-current-project-files)
-                                        collect (cons display (expand-file-name display root)))))))
-    (filtered-candidate-transformer
-     :initform (lambda (files _source)
-                 (with-helm-current-buffer
-                   (let* ((root (projectile-project-root))
-                          (file-at-root (file-relative-name (expand-file-name helm-pattern root))))
-                     (if (or (string-empty-p helm-pattern)
-                             (assoc helm-pattern files))
-                         files
-                       (if (equal helm-pattern file-at-root)
-                           (cl-acons (helm-ff-prefix-filename helm-pattern nil t)
-                                     (expand-file-name helm-pattern)
-                                     files)
-                         (cl-pairlis (list (helm-ff-prefix-filename helm-pattern nil t)
-                                           (helm-ff-prefix-filename file-at-root nil t))
-                                     (list (expand-file-name helm-pattern)
-                                           (expand-file-name helm-pattern root))
-                                     files)))))))
-    (fuzzy-match :initform 'helm-projectile-fuzzy-match)
-    (keymap :initform 'helm-projectile-find-file-map)
-    (help-message :initform 'helm-ff-help-message)
-    (mode-line :initform 'helm-read-file-name-mode-line-string)
-    (action :initform 'helm-projectile-file-actions)
-    (persistent-action :initform #'helm-projectile-file-persistent-action)
-    (persistent-help :initform "Preview file")))
+   (candidates
+    :initform (lambda ()
+                (when (projectile-project-p)
+                  (with-helm-current-buffer
+                    (helm-projectile--files-display-real (projectile-current-project-files)
+                                                         (projectile-project-root))))))
+   (filtered-candidate-transformer
+    :initform (lambda (files _source)
+                (with-helm-current-buffer
+                  (let* ((root (projectile-project-root))
+                         (file-at-root (file-relative-name (expand-file-name helm-pattern root))))
+                    (if (or (string-empty-p helm-pattern)
+                            (assoc helm-pattern files))
+                        files
+                      (if (equal helm-pattern file-at-root)
+                          (cl-acons (helm-ff-prefix-filename helm-pattern nil t)
+                                    (expand-file-name helm-pattern)
+                                    files)
+                        (cl-pairlis (list (helm-ff-prefix-filename helm-pattern nil t)
+                                          (helm-ff-prefix-filename file-at-root nil t))
+                                    (list (expand-file-name helm-pattern)
+                                          (expand-file-name helm-pattern root))
+                                    files)))))))
+   (fuzzy-match :initform 'helm-projectile-fuzzy-match)
+   (keymap :initform 'helm-projectile-find-file-map)
+   (help-message :initform 'helm-ff-help-message)
+   (mode-line :initform 'helm-read-file-name-mode-line-string)
+   (action :initform 'helm-projectile-file-actions)
+   (persistent-action :initform #'helm-projectile-file-persistent-action)
+   (persistent-help :initform "Preview file")))
 
 (defvar helm-source-projectile-files-list
   (helm-make-source "Projectile files" 'helm-source-projectile-file)
@@ -1028,8 +1028,19 @@ With a prefix ARG invalidates the cache first."
   "Create (DISPLAY . REAL) pairs with FILES and ROOT.
 
   DISPLAY is the short file name.  REAL is the full path."
-  (cl-loop for display in files
-           collect (cons display (expand-file-name display root))))
+  ;; Use `helm-ff-filter-candidate-one-by-one' (just like `hhelm-find-files-get-candidates' does).
+  ;; With a twist that some of files may contain a directory component.
+  ;; In such a case `helm-ff-filter-candidate-one-by-one' just returns a file component,
+  ;; so we the do a concatenation of file and directory components manually.
+  (cl-loop with default-directory = root
+           for file in files
+           collect (let ((file-res (helm-ff-filter-candidate-one-by-one file nil t)))
+                     (if-let* ((directory (file-name-directory file)))
+                         (cons (concat (propertize directory 'face 'helm-ff-directory)
+                                       (unless (file-directory-p file)
+                                         (car file-res)))
+                               (cdr file-res))
+                       file-res))))
 
 (defun helm-projectile--find-file-dwim-1 (one-candidate-action actions prompt)
   "Find file at point based on context.
