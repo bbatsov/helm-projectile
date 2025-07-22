@@ -974,54 +974,104 @@ With a prefix ARG invalidates the cache first."
              :truncate-lines ,truncate-lines-var
              :prompt (projectile-prepend-project-name ,prompt)))))
 
+;; You can evaluate the following command to help inserting autoloads for the
+;; `helm-projectile-command' macro. To use: move point to a form that calls
+;; `helm-projectile-command' and type:
+;;
+;;   M-x helm-projectile-command-insert-autoload
+;;
+;; (defun helm-projectile-command-insert-autoload ()
+;;   "Insert autoload for a helm-projectile-command at point."
+;;   (interactive)
+;;   (save-excursion
+;;     (end-of-defun)
+;;     (beginning-of-defun)
+;;     (when-let* ((beg (point))
+;;                 (form (funcall load-read-function (current-buffer)))
+;;                 ((eq (car form) 'helm-projectile-command))
+;;                 (command (concat "helm-projectile-" (cadr form)))
+;;                 (file (file-name-sans-extension
+;;                        (file-name-nondirectory
+;;                         (buffer-file-name)))))
+;;       (goto-char beg)
+;;       (insert ";;;###autoload(autoload '" command " \"" file "\" nil t)\n"))))
+
+;;;###autoload(autoload 'helm-projectile-switch-project "helm-projectile" nil t)
 (helm-projectile-command "switch-project"
                          'helm-source-projectile-projects
                          "Switch to project: " t)
+
+;;;###autoload(autoload 'helm-projectile-switch-project-other-window "helm-projectile" nil t)
 (helm-projectile-command "switch-project-other-window"
                          (helm-make-source
                              "Projectile projects"
                              'helm-projectile-projects-other-window-source)
                          "Switch to project: " t)
+
+;;;###autoload(autoload 'helm-projectile-switch-project-other-frame "helm-projectile" nil t)
 (helm-projectile-command "switch-project-other-frame"
                          (helm-make-source
                              "Projectile projects"
                              'helm-projectile-projects-other-frame-source)
                          "Switch to project: " t)
+
+;;;###autoload(autoload 'helm-projectile-find-file "helm-projectile" nil t)
 (helm-projectile-command "find-file"
                          '(helm-source-projectile-dired-files-list
                            helm-source-projectile-files-list)
                          "Find file: ")
+;;;###autoload(autoload 'helm-projectile-find-file-other-window "helm-projectile" nil t)
 (helm-projectile-command "find-file-other-window"
                          '(helm-source-projectile-dired-files-other-window-list
                            helm-source-projectile-files-other-window-list)
                          "Find file (other window): ")
+
+;;;###autoload(autoload 'helm-projectile-find-file-other-frame "helm-projectile" nil t)
 (helm-projectile-command "find-file-other-frame"
                          '(helm-source-projectile-dired-files-other-frame-list
                            helm-source-projectile-files-other-frame-list)
                          "Find file (other frame): ")
+
+;;;###autoload(autoload 'helm-projectile-find-file-in-known-projects "helm-projectile" nil t)
 (helm-projectile-command "find-file-in-known-projects" 'helm-source-projectile-files-in-all-projects-list "Find file in projects: " t)
+
+;;;###autoload(autoload 'helm-projectile-find-dir "helm-projectile" nil t)
 (helm-projectile-command "find-dir"
                          '(helm-source-projectile-dired-files-list
                            helm-source-projectile-directories-list)
                          "Find dir: ")
+
+;;;###autoload(autoload 'helm-projectile-find-dir-other-window "helm-projectile" nil t)
 (helm-projectile-command "find-dir-other-window"
                          '(helm-source-projectile-dired-files-other-window-list
                            helm-source-projectile-directories-other-window-list)
                          "Find dir (other window): ")
+
+;;;###autoload(autoload 'helm-projectile-find-dir-other-frame "helm-projectile" nil t)
 (helm-projectile-command "find-dir-other-frame"
                          '(helm-source-projectile-dired-files-other-frame-list
                            helm-source-projectile-directories-other-frame-list)
                          "Find dir (other frame): ")
+
+;;;###autoload(autoload 'helm-projectile-recentf "helm-projectile" nil t)
 (helm-projectile-command "recentf" 'helm-source-projectile-recentf-list "Recently visited file: ")
+
+;;;###autoload(autoload 'helm-projectile-switch-to-buffer "helm-projectile" nil t)
 (helm-projectile-command "switch-to-buffer"
                          'helm-source-projectile-buffers-list
                          "Switch to buffer: " nil helm-buffers-truncate-lines)
+
+;;;###autoload(autoload 'helm-projectile-switch-to-buffer-other-window "helm-projectile" nil t)
 (helm-projectile-command "switch-to-buffer-other-window"
                          'helm-source-projectile-buffers-other-window-list
                          "Switch to buffer (other window): " nil helm-buffers-truncate-lines)
+
+;;;###autoload(autoload 'helm-projectile-switch-to-buffer-other-frame "helm-projectile" nil t)
 (helm-projectile-command "switch-to-buffer-other-frame"
                          'helm-source-projectile-buffers-other-frame-list
                          "Switch to buffer (other frame): " nil helm-buffers-truncate-lines)
+
+;;;###autoload(autoload 'helm-projectile-browse-dirty-projects "helm-projectile" nil t)
 (helm-projectile-command "browse-dirty-projects" 'helm-source-projectile-dirty-projects "Select a project: " t)
 
 (defun helm-projectile--files-display-real (files root)
