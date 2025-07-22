@@ -7,6 +7,10 @@
 * Add `helm-projectile` specific commands to switch to buffer and files in
   other window and other frame.
 
+### Changes
+
+* Add faces to sources that use files
+
 ## 1.2.0 (2025-07-21)
 
 ### Changes
