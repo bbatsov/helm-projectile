@@ -1500,8 +1500,8 @@ off."
         (define-key projectile-mode-map [remap projectile-find-file-dwim-other-window] #'helm-projectile-find-file-dwim-other-window)
         (define-key projectile-mode-map [remap projectile-find-file-dwim-other-frame] #'helm-projectile-find-file-dwim-other-frame)
         (define-key projectile-mode-map [remap projectile-find-dir] #'helm-projectile-find-dir)
-        (define-key projectile-mode-map [remap projectile-find-dir-other-window] #'helm-projectile-find-dir)
-        (define-key projectile-mode-map [remap projectile-find-dir-other-frame] #'helm-projectile-find-dir)
+        (define-key projectile-mode-map [remap projectile-find-dir-other-window] #'helm-projectile-find-dir-other-window)
+        (define-key projectile-mode-map [remap projectile-find-dir-other-frame] #'helm-projectile-find-dir-other-frame)
         (define-key projectile-mode-map [remap projectile-switch-project] #'helm-projectile-switch-project)
         ;; At the time of writing projectile didn't have neither
         ;; `projectile-switch-to-project-other-window' nor
