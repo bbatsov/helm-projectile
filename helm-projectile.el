@@ -297,6 +297,26 @@ to be specific to `helm-projectile-projects-source'."
 (defvar helm-source-projectile-projects
   (helm-make-source "Projectile projects" 'helm-projectile-projects-source))
 
+(defclass helm-projectile-projects-other-window-source (helm-projectile-projects-source)
+  ())
+
+(cl-defmethod helm-setup-user-source :after ((source helm-projectile-projects-other-window-source))
+  "Set `helm-projectile-switch-project-by-name-other-window' as the first action."
+  (setf (slot-value source 'action)
+        (helm-projectile-hack-actions
+         helm-source-projectile-projects-actions
+         '(helm-projectile-switch-project-by-name-other-window . :make-first))))
+
+(defclass helm-projectile-projects-other-frame-source (helm-projectile-projects-source)
+  ())
+
+(cl-defmethod helm-setup-user-source :after ((source helm-projectile-projects-other-frame-source))
+  "Set `helm-projectile-switch-project-by-name-other-frame' as the first action."
+  (setf (slot-value source 'action)
+        (helm-projectile-hack-actions
+         helm-source-projectile-projects-actions
+         '(helm-projectile-switch-project-by-name-other-frame))))
+
 (defvar helm-projectile-dirty-projects-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map helm-map)
@@ -954,7 +974,19 @@ With a prefix ARG invalidates the cache first."
              :truncate-lines ,truncate-lines-var
              :prompt (projectile-prepend-project-name ,prompt)))))
 
-(helm-projectile-command "switch-project" 'helm-source-projectile-projects "Switch to project: " t)
+(helm-projectile-command "switch-project"
+                         'helm-source-projectile-projects
+                         "Switch to project: " t)
+(helm-projectile-command "switch-project-other-window"
+                         (helm-make-source
+                             "Projectile projects"
+                             'helm-projectile-projects-other-window-source)
+                         "Switch to project: " t)
+(helm-projectile-command "switch-project-other-frame"
+                         (helm-make-source
+                             "Projectile projects"
+                             'helm-projectile-projects-other-frame-source)
+                         "Switch to project: " t)
 (helm-projectile-command "find-file"
                          '(helm-source-projectile-dired-files-list
                            helm-source-projectile-files-list)
@@ -1460,6 +1492,18 @@ off."
         (define-key projectile-mode-map [remap projectile-find-dir-other-window] #'helm-projectile-find-dir)
         (define-key projectile-mode-map [remap projectile-find-dir-other-frame] #'helm-projectile-find-dir)
         (define-key projectile-mode-map [remap projectile-switch-project] #'helm-projectile-switch-project)
+        ;; At the time of writing projectile didn't have neither
+        ;; `projectile-switch-to-project-other-window' nor
+        ;; `projectile-switch-to-project-other-frame' (hopefully these will be
+        ;; names should they be added).  Adding `helm-projectile' bindings in a
+        ;; - hopefully - backward compatible way, by setting up keys in
+        ;; `projectile-command-map'.
+        (if (where-is-internal 'projectile-switch-project-other-window projectile-mode-map nil t t)
+            (define-key projectile-mode-map [remap projectile-switch-project-other-window] #'helm-projectile-switch-project-other-window)
+          (define-key projectile-command-map (kbd "4 p") #'helm-projectile-switch-project-other-window))
+        (if (where-is-internal 'projectile-switch-project-other-frame projectile-mode-map nil t t)
+            (define-key projectile-mode-map [remap projectile-switch-project-other-frame] #'helm-projectile-switch-project-other-frame)
+          (define-key projectile-command-map (kbd "5 p") #'helm-projectile-switch-project-other-frame))
         (define-key projectile-mode-map [remap projectile-recentf] #'helm-projectile-recentf)
         (define-key projectile-mode-map [remap projectile-switch-to-buffer] #'helm-projectile-switch-to-buffer)
         (define-key projectile-mode-map [remap projectile-switch-to-buffer-other-window] #'helm-projectile-switch-to-buffer-other-window)
@@ -1487,6 +1531,12 @@ off."
       (define-key projectile-mode-map [remap projectile-find-dir-other-window] nil)
       (define-key projectile-mode-map [remap projectile-find-dir-other-frame] nil)
       (define-key projectile-mode-map [remap projectile-switch-project] nil)
+      (if (where-is-internal 'helm-projectile-switch-project-other-window projectile-command-map nil t t)
+          (define-key projectile-mode-map (kbd "4 p") nil)
+        (define-key projectile-mode-map [remap projectile-switch-project-other-window] nil))
+      (if (where-is-internal 'helm-projectile-switch-project-other-frame projectile-command-map nil t t)
+          (define-key projectile-mode-map (kbd "5 p") nil)
+        (define-key projectile-mode-map [remap projectile-switch-project-other-frame] nil))
       (define-key projectile-mode-map [remap projectile-recentf] nil)
       (define-key projectile-mode-map [remap projectile-switch-to-buffer] nil)
       (define-key projectile-mode-map [remap projectile-switch-to-buffer-other-window] nil)
