@@ -1086,7 +1086,7 @@ With a prefix ARG invalidates the cache first."
   "Create (DISPLAY . REAL) pairs with FILES and ROOT.
 
   DISPLAY is the short file name.  REAL is the full path."
-  ;; Use `helm-ff-filter-candidate-one-by-one' (just like `hhelm-find-files-get-candidates' does).
+  ;; Use `helm-ff-filter-candidate-one-by-one' (just like `helm-find-files-get-candidates' does).
   ;; With a twist that some of files may contain a directory component.
   ;; In such a case `helm-ff-filter-candidate-one-by-one' just returns a file component,
   ;; so we the do a concatenation of file and directory components manually.
