@@ -323,6 +323,8 @@ to be specific to `helm-projectile-projects-source'."
     (helm-projectile-define-key map
       (kbd "C-d") #'dired
       (kbd "M-o") #'helm-projectile-switch-project-by-name
+      (kbd "C-c o") #'helm-projectile-switch-project-by-name-other-window
+      (kbd "C-c C-o") #'helm-projectile-switch-project-by-name-other-frame
       (kbd "M-e") #'helm-projectile-switch-to-shell
       (kbd "C-s") #'helm-projectile-grep
       (kbd "M-c") #'helm-projectile-compile-project
@@ -340,6 +342,8 @@ to be specific to `helm-projectile-projects-source'."
     :mode-line helm-read-file-name-mode-line-string
     :action '(("Open project root in vc-dir or magit" . helm-projectile-vc)
               ("Switch to project `M-o'" . helm-projectile-switch-project-by-name)
+              ("Switch to project other window `C-c o'" . helm-projectile-switch-project-by-name-other-window)
+              ("Switch to project other frame `C-c C-o'" . helm-projectile-switch-project-by-name-other-frame)
               ("Open Dired in project's directory `C-d'" . dired)
               ("Switch to Eshell `M-e'" . helm-projectile-switch-to-shell)
               ("Grep in projects `C-s'" . helm-projectile-grep)
