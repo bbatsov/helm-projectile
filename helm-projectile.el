@@ -1094,7 +1094,10 @@ With a prefix ARG invalidates the cache first."
            for file in files
            collect (let ((file-res (helm-ff-filter-candidate-one-by-one file nil t)))
                      (if-let* ((directory (file-name-directory file)))
-                         (cons (concat (propertize directory 'face 'helm-ff-directory)
+                         (cons (concat (if-let* ((face (get-text-property
+                                                        0 'face (car file-res))))
+                                           (propertize directory 'face face)
+                                         directory)
                                        (unless (file-directory-p file)
                                          (car file-res)))
                                (cdr file-res))
