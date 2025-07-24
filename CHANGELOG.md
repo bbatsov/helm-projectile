@@ -4,8 +4,9 @@
 
 ### New features
 
-* Add `helm-projectile` specific commands to switch to buffer and files in
-  other window and other frame.
+* Add `helm-projectile` specific commands to switch projects, to switch to
+  buffers and to find files in other window and other frame. Most of new
+  commands is bound after `C-c p 4` and `C-c p 5`.
 
 ### Changes
 
