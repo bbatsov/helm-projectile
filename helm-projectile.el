@@ -322,9 +322,7 @@ to be specific to `helm-projectile-projects-source'."
     (set-keymap-parent map helm-map)
     (helm-projectile-define-key map
       (kbd "C-d") #'dired
-      (kbd "M-o") #'(lambda (project)
-                      (let ((projectile-completion-system 'helm))
-                        (projectile-switch-project-by-name project)))
+      (kbd "M-o") #'helm-projectile-switch-project-by-name
       (kbd "M-e") #'helm-projectile-switch-to-shell
       (kbd "C-s") #'helm-projectile-grep
       (kbd "M-c") #'helm-projectile-compile-project
@@ -341,10 +339,7 @@ to be specific to `helm-projectile-projects-source'."
     :keymap helm-projectile-dirty-projects-map
     :mode-line helm-read-file-name-mode-line-string
     :action '(("Open project root in vc-dir or magit" . helm-projectile-vc)
-              ("Switch to project `M-o'" .
-               (lambda (project)
-                 (let ((projectile-completion-system 'helm))
-                   (projectile-switch-project-by-name project))))
+              ("Switch to project `M-o'" . helm-projectile-switch-project-by-name)
               ("Open Dired in project's directory `C-d'" . dired)
               ("Switch to Eshell `M-e'" . helm-projectile-switch-to-shell)
               ("Grep in projects `C-s'" . helm-projectile-grep)
