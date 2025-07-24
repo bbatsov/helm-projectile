@@ -359,14 +359,23 @@ The value is returned as an alist to have a nice display in Helm."
          (proj-dir (cl-loop for stat in status
                             collect (car stat)))
          (status-display (cl-loop for stat in status collect
-                                  (propertize (format "[%s]" (mapconcat 'identity (car (cdr stat)) ", ")) 'face 'helm-match)))
+                                  (propertize (format "[%s]"
+                                                      (mapconcat 'identity
+                                                                 (car (cdr stat)) ", "))
+                                              'face 'helm-match)))
          (max-status-display-length (cl-loop for sd in status-display
                                              maximize (length sd)))
          (status-display (cl-loop for sd in status-display collect
-                                  (format "%s%s    " sd (make-string (- max-status-display-length (length sd)) ? ))))
-         (full-display (cl-mapcar 'concat status-display proj-dir))
-         (helm-list (cl-pairlis full-display proj-dir)))
-    helm-list))
+                                  (format "%s%s    "
+                                          sd
+                                          (make-string
+                                           (- max-status-display-length (length sd)) ? ))))
+         (full-display (cl-mapcar 'concat
+                                  status-display
+                                  (mapcar (lambda (dir)
+                                            (propertize dir 'face 'helm-ff-directory))
+                                          proj-dir))))
+    (cl-pairlis full-display proj-dir)))
 
 (define-key helm-etags-map (kbd "C-c p f")
   (lambda ()
