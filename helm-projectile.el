@@ -315,7 +315,7 @@ to be specific to `helm-projectile-projects-source'."
   (setf (slot-value source 'action)
         (helm-projectile-hack-actions
          helm-source-projectile-projects-actions
-         '(helm-projectile-switch-project-by-name-other-frame))))
+         '(helm-projectile-switch-project-by-name-other-frame . :make-first))))
 
 (defvar helm-projectile-dirty-projects-map
   (let ((map (make-sparse-keymap)))
