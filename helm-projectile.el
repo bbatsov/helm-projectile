@@ -245,7 +245,8 @@ It is there because Helm requires it."
       (kbd "M-c") #'helm-projectile-compile-project
       (kbd "M-t") #'helm-projectile-test-project
       (kbd "M-r") #'helm-projectile-run-project
-      (kbd "M-D") #'helm-projectile-remove-known-project)
+      (kbd "M-D") #'helm-projectile-remove-known-project
+      (kbd "C-S-a") #'helm-projectile--switch-project-and-ag-action)
     map)
   "Mapping for known projectile projects.")
 
@@ -259,7 +260,8 @@ It is there because Helm requires it."
    "Switch to Eshell `M-e'" #'helm-projectile-switch-to-shell
    "Grep in projects `C-s'" #'helm-projectile-grep
    "Compile project `M-c'. With C-u, new compile command" #'helm-projectile-compile-project
-   "Remove project(s) from project list `M-D'" #'helm-projectile-remove-known-project)
+   "Remove project(s) from project list `M-D'" #'helm-projectile-remove-known-project
+   "Silver searcher (ag) in project `C-S-a'" #'helm-projectile--switch-project-and-ag-action)
   "Actions for `helm-source-projectile-projects'."
   :group 'helm-projectile
   :type '(alist :key-type string :value-type function))
@@ -330,7 +332,8 @@ to be specific to `helm-projectile-projects-source'."
       (kbd "M-c") #'helm-projectile-compile-project
       (kbd "M-t") #'helm-projectile-test-project
       (kbd "M-r") #'helm-projectile-run-project
-      (kbd "M-D") #'helm-projectile-remove-known-project)
+      (kbd "M-D") #'helm-projectile-remove-known-project
+      (kbd "C-S-a") #'helm-projectile--switch-project-and-ag-action)
     map)
   "Mapping for dirty projectile projects.")
 
@@ -348,7 +351,8 @@ to be specific to `helm-projectile-projects-source'."
               ("Switch to Eshell `M-e'" . helm-projectile-switch-to-shell)
               ("Grep in projects `C-s'" . helm-projectile-grep)
               ("Compile project `M-c'. With C-u, new compile command"
-               . helm-projectile-compile-project)))
+               . helm-projectile-compile-project)
+              ("Silver searcher (ag) in project `C-S-a'" . helm-projectile--switch-project-and-ag-action)))
     "Helm source for dirty version controlled projectile projects.")
 
 (defun helm-projectile-get-dirty-projects ()
@@ -731,10 +735,15 @@ Meant to be added to `helm-cleanup-hook', from which it removes
    (filter-one-by-one :initform (lambda (file)
                                   (let ((helm-ff-transformer-show-only-basename t))
                                     (helm-ff-filter-candidate-one-by-one file))))
-   (action-transformer :initform 'helm-find-files-action-transformer)
+   (action-transformer :initform (lambda (actions candidate)
+                                   (let ((actions  (helm-find-files-action-transformer actions candidate)))
+                                     (append
+                                      actions
+                                      '(("Silver searcher (ag) in directory `C-S-a'" . helm-projectile--switch-project-and-ag-action))))))
    (keymap :initform (let ((map (copy-keymap helm-projectile-find-file-map)))
                        (helm-projectile-define-key map
-                         (kbd "C-c d") 'helm-projectile-dired-files-delete-action)
+                         (kbd "C-c d") #'helm-projectile-dired-files-delete-action
+                         (kbd "C-S-a") #'helm-projectile--switch-project-and-ag-action)
                        map))
     (help-message :initform 'helm-ff-help-message)
     (mode-line :initform 'helm-read-file-name-mode-line-string)
@@ -797,7 +806,8 @@ Meant to be added to `helm-cleanup-hook', from which it removes
     ("Switch to Eshell `M-e'" . helm-projectile-switch-to-shell)
     ("Grep in projects `C-s'" . helm-projectile-grep)
     ("Create Dired buffer from files `C-c f'" . helm-projectile-dired-files-new-action)
-    ("Add files to Dired buffer `C-c a'" . helm-projectile-dired-files-add-action)))
+    ("Add files to Dired buffer `C-c a'" . helm-projectile-dired-files-add-action)
+    ("Silver searcher (ag) in directory `C-S-a'" . helm-projectile--switch-project-and-ag-action)))
 
 (defclass helm-source-projectile-directory (helm-source-sync)
   ((candidates :initform (lambda ()
@@ -819,7 +829,8 @@ Meant to be added to `helm-cleanup-hook', from which it removes
                          (kbd "M-e")   #'helm-projectile-switch-to-shell
                          (kbd "C-c f") #'helm-projectile-dired-files-new-action
                          (kbd "C-c a") #'helm-projectile-dired-files-add-action
-                         (kbd "C-s")   #'helm-projectile-grep)
+                         (kbd "C-s")   #'helm-projectile-grep
+                         (kbd "C-S-a") #'helm-projectile--switch-project-and-ag-action)
                        map))
    (help-message :initform 'helm-ff-help-message)
    (mode-line :initform 'helm-read-file-name-mode-line-string)
@@ -1391,46 +1402,8 @@ DIR directory where to search"
     (funcall 'run-with-timer 0.01 nil
              #'helm-projectile-grep-or-ack project-root t ignored helm-ack-grep-executable)))
 
-;;;###autoload
-
-(defun helm-projectile-ag (&optional options)
-  "Helm version of `projectile-ag'.
-OPTIONS are explicit command line arguments to `helm-grep-ag-command'.
-When called with a single or a triple prefix argument, ask for OPTIONS.
-When called with a double or a triple prefix argument, ask for TYPES (see
-`helm-grep-ag').'
-
-This command uses `helm-grep-ag' to perform the search, so the actual
-searcher used is determined by the value of `helm-grep-ag-command'."
-  (interactive (if (member current-prefix-arg '((4) (64)))
-                   (list (helm-read-string "option: " ""
-                                           'helm-ag--extra-options-history))))
-  (if (projectile-project-p)
-      (let* ((ignored (when (helm-projectile--projectile-ignore-strategy)
-                        (mapconcat (lambda (i)
-                                     (helm-acase (helm-grep--ag-command)
-                                       ;; `helm-grep-ag-command' suggests
-                                       ;; that PT is obsolete, but support
-                                       ;; still persist in Helm. Likely
-                                       ;; remove after Helm drops support.
-                                       (("ag" "pt")
-                                        (concat "--ignore " (shell-quote-argument i)))
-                                       ("rg"
-                                        (concat "--iglob !" (shell-quote-argument i)))))
-                                   (append grep-find-ignored-files
-                                           grep-find-ignored-directories
-                                           (cadr (projectile-parse-dirconfig-file)))
-                                   " ")))
-             (helm-grep-ag-command (format helm-grep-ag-command
-                                           (mapconcat #'identity
-                                                      (delq nil (list ignored options "%s"))
-                                                      " ")
-                                           "%s" "%s"))
-             (with-types (member current-prefix-arg '((16) (64))))
-             (current-prefix-arg nil))
-        (helm-grep-ag (projectile-project-root) with-types))
-    (error "You're not in a project")))
-
+(defvar helm-projectile--ag-input nil
+  "The value of input to be used in a next `helm-projectile-ag' call.")
 
 (defun helm-projectile--ag-automatic-input (args)
   "Use active region or a symbol at point as a third element in ARGS.
@@ -1439,11 +1412,7 @@ use directly."
   (pcase-let ((`(,directory ,type ,input) args))
     (list directory
           type
-          (or input
-              (when helm-projectile-set-input-automatically
-                (if (region-active-p)
-                    (buffer-substring-no-properties (region-beginning) (region-end))
-                  (thing-at-point 'symbol)))))))
+          (or input helm-projectile--ag-input))))
 
 ;; When calling `helm', the function `helm-grep-ag' uses symbol at point as an
 ;; argument `:default-input' (via `helm-sources-using-default-as-input').  This
@@ -1455,6 +1424,75 @@ use directly."
 ;; arguments `:default-input' and `:input' are populated.
 (advice-add #'helm-grep-ag-1
             :filter-args #'helm-projectile--ag-automatic-input)
+
+(defun helm-projectile--ag--region-selection ()
+  "Return a default input for `helm-grep-ag'."
+  (when helm-projectile-set-input-automatically
+    (if (region-active-p)
+        (buffer-substring-no-properties (region-beginning) (region-end))
+      (thing-at-point 'symbol))))
+
+(defun helm-projectile--ag-1 (directory input &optional options)
+  "Call `helm-grep-ag' with DIRECTORY.
+DIRECTORY is the directory to search in.  INPUT is the value of default
+input to use for the search.  OPTIONS are explicit command line
+arguments to `helm-grep-ag-command'.  When called with a double or a
+triple prefix argument, ask for TYPES (see `helm-grep-ag')."
+  (let* ((ignored (when (helm-projectile--projectile-ignore-strategy)
+                    (mapconcat (lambda (i)
+                                 (helm-acase (helm-grep--ag-command)
+                                   ;; `helm-grep-ag-command' suggests
+                                   ;; that PT is obsolete, but support
+                                   ;; still persist in Helm. Likely
+                                   ;; remove after Helm drops support.
+                                   (("ag" "pt")
+                                    (concat "--ignore " (shell-quote-argument i)))
+                                   ("rg"
+                                    (concat "--iglob !" (shell-quote-argument i)))))
+                               (append grep-find-ignored-files
+                                       grep-find-ignored-directories
+                                       (cadr (projectile-parse-dirconfig-file)))
+                               " ")))
+         (helm-grep-ag-command (format helm-grep-ag-command
+                                       (mapconcat #'identity
+                                                  (delq nil (list ignored options "%s"))
+                                                  " ")
+                                       "%s" "%s"))
+         (with-types (member current-prefix-arg '((16) (64))))
+         (current-prefix-arg nil)
+         (helm-projectile--ag-input input))
+    (helm-grep-ag directory with-types)))
+
+;;;###autoload
+(defun helm-projectile-ag (&optional options)
+  "Helm version of `projectile-ag'.
+When called with a single or a triple prefix argument, ask for OPTIONS.
+When called with a double or a triple prefix argument, ask for
+TYPES (see `helm-grep-ag').'
+
+This command uses `helm-grep-ag' to perform the search, so the actual
+searcher used is determined by the value of `helm-grep-ag-command'."
+  (interactive (if (member current-prefix-arg '((4) (64)))
+                   (list (helm-read-string "option: " ""
+                                           'helm-ag--extra-options-history))))
+  (if (projectile-project-p)
+      (helm-projectile--ag-1 (projectile-project-root)
+                             (helm-projectile--ag--region-selection)
+                             options)
+    (error "You're not in a project")))
+
+(defun helm-projectile--switch-project-and-ag-action (directory)
+  "Switch to a project containing DIRECTORY then run ag in the DIRECTORY."
+  (if (and (file-directory-p directory)
+           (projectile-project-p directory))
+      (let* ((input (helm-projectile--ag--region-selection))
+             (projectile-switch-project-action
+              (lambda ()
+                (helm-projectile--ag-1 (file-truename directory) input))))
+        (projectile-switch-project-by-name (projectile-project-root directory)))
+    (error (if (file-directory-p directory)
+               (format "Directory %s is not in any project!" directory)
+             (format "Not a directory %s" directory)))))
 
 ;; Declare/define these to satisfy the byte compiler
 (defvar helm-rg-prepend-file-name-line-at-top-of-matches)
