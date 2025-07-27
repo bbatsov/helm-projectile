@@ -1093,6 +1093,7 @@ With a prefix ARG invalidates the cache first."
   (cl-loop with default-directory = root
            for file in files
            collect (let ((file-res (helm-ff-filter-candidate-one-by-one file nil t)))
+                     (setcdr file-res (expand-file-name file root))
                      (if-let* ((directory (file-name-directory file)))
                          (cons (concat (if-let* ((face (get-text-property
                                                         0 'face (car file-res))))
