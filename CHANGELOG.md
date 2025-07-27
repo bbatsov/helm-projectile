@@ -4,6 +4,9 @@
 
 ### New features
 
+* Add `helm-projectile` actions to search projects with rg and ag. The new
+  actions are bound to `C-S-a` and `C-S-d` respectively and they are available
+  in all sources that complete projects and directories.
 * Add `helm-projectile` specific commands to switch projects, to switch to
   buffers and to find files in other window and other frame. Most of new
   commands is bound after `C-c p 4` and `C-c p 5`.
