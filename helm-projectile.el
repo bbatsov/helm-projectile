@@ -246,7 +246,8 @@ It is there because Helm requires it."
       (kbd "M-t") #'helm-projectile-test-project
       (kbd "M-r") #'helm-projectile-run-project
       (kbd "M-D") #'helm-projectile-remove-known-project
-      (kbd "C-S-a") #'helm-projectile--switch-project-and-ag-action)
+      (kbd "C-S-a") #'helm-projectile--switch-project-and-ag-action
+      (kbd "C-S-r") #'helm-projectile--switch-project-and-rg-action)
     map)
   "Mapping for known projectile projects.")
 
@@ -261,7 +262,8 @@ It is there because Helm requires it."
    "Grep in projects `C-s'" #'helm-projectile-grep
    "Compile project `M-c'. With C-u, new compile command" #'helm-projectile-compile-project
    "Remove project(s) from project list `M-D'" #'helm-projectile-remove-known-project
-   "Silver searcher (ag) in project `C-S-a'" #'helm-projectile--switch-project-and-ag-action)
+   "Silver searcher (ag) in project `C-S-a'" #'helm-projectile--switch-project-and-ag-action
+   "Ripgrep (rg) in project `C-S-r'" #'helm-projectile--switch-project-and-rg-action)
   "Actions for `helm-source-projectile-projects'."
   :group 'helm-projectile
   :type '(alist :key-type string :value-type function))
@@ -333,7 +335,8 @@ to be specific to `helm-projectile-projects-source'."
       (kbd "M-t") #'helm-projectile-test-project
       (kbd "M-r") #'helm-projectile-run-project
       (kbd "M-D") #'helm-projectile-remove-known-project
-      (kbd "C-S-a") #'helm-projectile--switch-project-and-ag-action)
+      (kbd "C-S-a") #'helm-projectile--switch-project-and-ag-action
+      (kbd "C-S-r") #'helm-projectile--switch-project-and-rg-action)
     map)
   "Mapping for dirty projectile projects.")
 
@@ -352,7 +355,8 @@ to be specific to `helm-projectile-projects-source'."
               ("Grep in projects `C-s'" . helm-projectile-grep)
               ("Compile project `M-c'. With C-u, new compile command"
                . helm-projectile-compile-project)
-              ("Silver searcher (ag) in project `C-S-a'" . helm-projectile--switch-project-and-ag-action)))
+              ("Silver searcher (ag) in project `C-S-a'" . helm-projectile--switch-project-and-ag-action)
+              ("Ripgrep (rg) in project `C-S-r'" . helm-projectile--switch-project-and-rg-action)))
     "Helm source for dirty version controlled projectile projects.")
 
 (defun helm-projectile-get-dirty-projects ()
@@ -739,11 +743,13 @@ Meant to be added to `helm-cleanup-hook', from which it removes
                                    (let ((actions  (helm-find-files-action-transformer actions candidate)))
                                      (append
                                       actions
-                                      '(("Silver searcher (ag) in directory `C-S-a'" . helm-projectile--switch-project-and-ag-action))))))
+                                      '(("Silver searcher (ag) in directory `C-S-a'" . helm-projectile--switch-project-and-ag-action)
+                                        ("Ripgrep (rg) in directory `C-S-r'" . helm-projectile--switch-project-and-rg-action))))))
    (keymap :initform (let ((map (copy-keymap helm-projectile-find-file-map)))
                        (helm-projectile-define-key map
                          (kbd "C-c d") #'helm-projectile-dired-files-delete-action
-                         (kbd "C-S-a") #'helm-projectile--switch-project-and-ag-action)
+                         (kbd "C-S-a") #'helm-projectile--switch-project-and-ag-action
+                         (kbd "C-S-r") #'helm-projectile--switch-project-and-rg-action)
                        map))
     (help-message :initform 'helm-ff-help-message)
     (mode-line :initform 'helm-read-file-name-mode-line-string)
@@ -807,7 +813,8 @@ Meant to be added to `helm-cleanup-hook', from which it removes
     ("Grep in projects `C-s'" . helm-projectile-grep)
     ("Create Dired buffer from files `C-c f'" . helm-projectile-dired-files-new-action)
     ("Add files to Dired buffer `C-c a'" . helm-projectile-dired-files-add-action)
-    ("Silver searcher (ag) in directory `C-S-a'" . helm-projectile--switch-project-and-ag-action)))
+    ("Silver searcher (ag) in directory `C-S-a'" . helm-projectile--switch-project-and-ag-action)
+    ("Ripgrep (rg) in directory `C-S-r'" . helm-projectile--switch-project-and-rg-action)))
 
 (defclass helm-source-projectile-directory (helm-source-sync)
   ((candidates :initform (lambda ()
@@ -830,7 +837,8 @@ Meant to be added to `helm-cleanup-hook', from which it removes
                          (kbd "C-c f") #'helm-projectile-dired-files-new-action
                          (kbd "C-c a") #'helm-projectile-dired-files-add-action
                          (kbd "C-s")   #'helm-projectile-grep
-                         (kbd "C-S-a") #'helm-projectile--switch-project-and-ag-action)
+                         (kbd "C-S-a") #'helm-projectile--switch-project-and-ag-action
+                         (kbd "C-S-r") #'helm-projectile--switch-project-and-rg-action)
                        map))
    (help-message :initform 'helm-ff-help-message)
    (mode-line :initform 'helm-read-file-name-mode-line-string)
@@ -1508,38 +1516,64 @@ searcher used is determined by the value of `helm-grep-ag-command'."
         (buffer-substring-no-properties (region-beginning) (region-end))
       (helm-rg--get-thing-at-pt))))
 
+(defmacro helm-projectile--with-helm-rg (&rest body)
+  "Execute BODY if package `helm-rg'is installed.
+Otherwise ask to install package`helm-rg'."
+  (declare (indent 0) (debug t))
+  `(if (require 'helm-rg nil t)
+       (progn ,@body)
+     (when (yes-or-no-p "`helm-rg' is not installed.  Install it? ")
+       (condition-case nil
+           (progn
+             (package-install 'helm-rg)
+             (helm-projectile-rg))
+         (error "`helm-rg' is not available.  Is MELPA in your `package-archives'?")))))
+
+(defun helm-projectile--rg-1 (directory input)
+  "Call `helm-rg' with DIRECTORY.
+DIRECTORY is the directory to search in.  INPUT is the value of default
+input to use for the search."
+  (let* ((helm-rg-prepend-file-name-line-at-top-of-matches nil)
+         (helm-rg-include-file-on-every-match-line t)
+         (default-directory directory)
+         (helm-rg--extra-args
+          (if (helm-projectile--projectile-ignore-strategy)
+              (mapcan (lambda (path) (list "--glob" path))
+                      (cl-union
+                       (mapcar (lambda (path)
+                                 (concat "!" path))
+                               (helm-projectile--ignored-files))
+                       (mapcar (lambda (path)
+                                 (concat "!" path "/**"))
+                               (mapcar 'directory-file-name
+                                       (helm-projectile--ignored-directories)))
+                       :test #'equal))
+            helm-rg--extra-args)))
+    (helm-rg input nil)))
+
 ;;;###autoload
 (defun helm-projectile-rg ()
   "Projectile version of `helm-rg'."
   (interactive)
-  (if (require 'helm-rg nil t)
-      (if (projectile-project-p)
-          (let* ((helm-rg-prepend-file-name-line-at-top-of-matches nil)
-                 (helm-rg-include-file-on-every-match-line t)
-                 (default-directory (projectile-project-root))
-                 (helm-rg--extra-args
-                  (if (helm-projectile--projectile-ignore-strategy)
-                      (mapcan (lambda (path) (list "--glob" path))
-                              (cl-union
-                               (mapcar (lambda (path)
-                                         (concat "!" path))
-                                       (helm-projectile--ignored-files))
-                               (mapcar (lambda (path)
-                                         (concat "!" path "/**"))
-                                       (mapcar 'directory-file-name
-                                               (helm-projectile--ignored-directories)))
-                               :test #'equal))
-                    helm-rg--extra-args)))
+  (helm-projectile--with-helm-rg
+   (if (projectile-project-p)
+       (helm-projectile--rg-1 (projectile-project-root)
+                              (helm-projectile-rg--region-selection))
+     (error "You're not in a project"))))
 
-            (helm-rg (helm-projectile-rg--region-selection)
-                     nil))
-        (error "You're not in a project"))
-    (when (yes-or-no-p "`helm-rg' is not installed.  Install it? ")
-      (condition-case nil
-          (progn
-            (package-install 'helm-rg)
-            (helm-projectile-rg))
-        (error "`helm-rg' is not available.  Is MELPA in your `package-archives'?")))))
+(defun helm-projectile--switch-project-and-rg-action (directory)
+  "Switch to a project containing DIRECTORY then run rg in the DIRECTORY."
+  (helm-projectile--with-helm-rg
+   (if (and (file-directory-p directory)
+            (projectile-project-p directory))
+       (let* ((input (helm-projectile-rg--region-selection))
+              (projectile-switch-project-action
+               (lambda ()
+                 (helm-projectile--rg-1 (file-truename directory) input))))
+         (projectile-switch-project-by-name (projectile-project-root directory)))
+     (error (if (file-directory-p directory)
+                (format "Directory %s is not in any project!" directory)
+              (format "Not a directory %s" directory))))))
 
 (defun helm-projectile-commander-bindings ()
   "Define Helm versions of Projectile commands in `projectile-commander'."
