@@ -741,10 +741,12 @@ Meant to be added to `helm-cleanup-hook', from which it removes
                                     (helm-ff-filter-candidate-one-by-one file))))
    (action-transformer :initform (lambda (actions candidate)
                                    (let ((actions  (helm-find-files-action-transformer actions candidate)))
-                                     (append
-                                      actions
-                                      '(("Silver searcher (ag) in directory `C-S-a'" . helm-projectile--switch-project-and-ag-action)
-                                        ("Ripgrep (rg) in directory `C-S-r'" . helm-projectile--switch-project-and-rg-action))))))
+                                     (if (file-directory-p candidate)
+                                         (append
+                                          actions
+                                          '(("Silver searcher (ag) in directory `C-S-a'" . helm-projectile--switch-project-and-ag-action)
+                                            ("Ripgrep (rg) in directory `C-S-r'" . helm-projectile--switch-project-and-rg-action)))
+                                       actions))))
    (keymap :initform (let ((map (copy-keymap helm-projectile-find-file-map)))
                        (helm-projectile-define-key map
                          (kbd "C-c d") #'helm-projectile-dired-files-delete-action
