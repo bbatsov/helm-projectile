@@ -1507,6 +1507,7 @@ searcher used is determined by the value of `helm-grep-ag-command'."
 ;; Declare/define these to satisfy the byte compiler
 (defvar helm-rg-prepend-file-name-line-at-top-of-matches)
 (defvar helm-rg-include-file-on-every-match-line)
+(defvar helm-rg-default-directory)
 (defvar helm-rg--extra-args)
 (declare-function helm-rg "ext:helm-rg")
 (declare-function helm-rg--get-thing-at-pt "ext:helm-rg")
@@ -1537,6 +1538,7 @@ DIRECTORY is the directory to search in.  INPUT is the value of default
 input to use for the search."
   (let* ((helm-rg-prepend-file-name-line-at-top-of-matches nil)
          (helm-rg-include-file-on-every-match-line t)
+         (helm-rg-default-directory 'default)
          (default-directory directory)
          (helm-rg--extra-args
           (if (helm-projectile--projectile-ignore-strategy)

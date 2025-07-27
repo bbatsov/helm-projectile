@@ -11,6 +11,10 @@
   buffers and to find files in other window and other frame. Most of new
   commands is bound after `C-c p 4` and `C-c p 5`.
 
+### Fixes
+
+* When searching with rg, ensure the directory is chosen based on projectile.
+
 ### Changes
 
 * Add faces to sources that use files
