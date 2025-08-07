@@ -1459,10 +1459,9 @@ triple prefix argument, ask for TYPES (see `helm-grep-ag')."
                                    (("ag" "pt")
                                     (concat "--ignore " (shell-quote-argument i)))
                                    ("rg"
-                                    (concat "--iglob !" (shell-quote-argument i)))))
-                               (append grep-find-ignored-files
-                                       grep-find-ignored-directories
-                                       (cadr (projectile-parse-dirconfig-file)))
+                                    (concat "--glob !" (shell-quote-argument i)))))
+                               (append (helm-projectile--ignored-files)
+                                       (helm-projectile--ignored-directories))
                                " ")))
          (helm-grep-ag-command (format helm-grep-ag-command
                                        (mapconcat #'identity
