@@ -18,6 +18,7 @@
 
 ### Changes
 
+* [#179](https://github.com/bbatsov/helm-projectile/issues/179) Only install package `helm-rg` when it is really needed.
 * Add faces to sources that use files.
 * Add faces to `helm-projectile-browse-dirty-projects`
 * Add autoloads to `helm-projectile` commands defined

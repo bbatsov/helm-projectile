@@ -1512,6 +1512,14 @@ searcher used is determined by the value of `helm-grep-ag-command'."
 (declare-function helm-rg "ext:helm-rg")
 (declare-function helm-rg--get-thing-at-pt "ext:helm-rg")
 
+(defcustom helm-projectile-ask-to-install-helm-rg t
+  "Whether to ask user to install `helm-rg' when searching with ripgrep (rg).
+The question is presented to user when the `helm-grep-ag-command' is not
+pointing to ripgrep (rg) executable and the package `helm-rg' is not
+installed."
+  :type 'boolean
+  :group 'helm-projectile)
+
 (defun helm-projectile-rg--region-selection ()
   "Return a default input for `helm-rg'."
   (when helm-projectile-set-input-automatically
@@ -1519,18 +1527,27 @@ searcher used is determined by the value of `helm-grep-ag-command'."
         (buffer-substring-no-properties (region-beginning) (region-end))
       (helm-rg--get-thing-at-pt))))
 
-(defmacro helm-projectile--with-helm-rg (&rest body)
+(defmacro helm-projectile--with-helm-rg (fallback &rest body)
   "Execute BODY if package `helm-rg'is installed.
-Otherwise ask to install package`helm-rg'."
-  (declare (indent 0) (debug t))
-  `(if (require 'helm-rg nil t)
-       (progn ,@body)
-     (when (yes-or-no-p "`helm-rg' is not installed.  Install it? ")
-       (condition-case nil
-           (progn
-             (package-install 'helm-rg)
-             ,@body)
-         (error "`helm-rg' is not available.  Is MELPA in your `package-archives'?")))))
+Otherwise if `helm-grep-ag-command' is pointing to ripgrep (rg) call the
+FALLBACK, which is expected to be some version of `helm-projectile-ag'.
+Otherwise ask to install package`helm-rg' and execute BODY."
+  (declare (indent 1) (debug t))
+  `(cond ((require 'helm-rg nil t)
+          (progn ,@body))
+         ((equal "rg" (helm-grep--ag-command))
+          (funcall ,fallback))
+         ((and
+           helm-projectile-ask-to-install-helm-rg
+           (yes-or-no-p "`helm-rg' is not installed.  Install it? "))
+          (condition-case nil
+              (progn
+                (package-refresh-contents)
+                (package-install 'helm-rg)
+                ,@body)
+            (error "`helm-rg' is not available.  Is MELPA in your `package-archives'?")))
+         (t
+          (error "Cannot execute search with ripgrep (rg)"))))
 
 (defun helm-projectile--rg-1 (directory input)
   "Call `helm-rg' with DIRECTORY.
@@ -1552,27 +1569,39 @@ input to use for the search."
 
 ;;;###autoload
 (defun helm-projectile-rg ()
-  "Projectile version of `helm-rg'."
+  "Projectile version of `helm-rg'.
+When package `helm-rg' is not installed and `helm-grep-ag-command' is
+pointing to ripgrep (rg) then use `helm-projectile-ag'.  Otherwise if
+`helm-projectile-ask-to-install-helm-rg' is non nil then ask to install
+package `helm-rg'."
   (interactive)
   (helm-projectile--with-helm-rg
-   (if (projectile-project-p)
-       (helm-projectile--rg-1 (projectile-project-root)
-                              (helm-projectile-rg--region-selection))
-     (error "You're not in a project"))))
+      #'helm-projectile-ag
+    (if (projectile-project-p)
+        (helm-projectile--rg-1 (projectile-project-root)
+                               (helm-projectile-rg--region-selection))
+      (error "You're not in a project"))))
 
 (defun helm-projectile--switch-project-and-rg-action (directory)
-  "Switch to a project containing DIRECTORY then run rg in the DIRECTORY."
+  "Switch to a project containing DIRECTORY then run rg in the DIRECTORY.
+When package `helm-rg' is not installed and `helm-grep-ag-command' is
+pointing to ripgrep (rg) then use
+`helm-projectile--switch-project-and-ag-action'.  Otherwise if
+`helm-projectile-ask-to-install-helm-rg' is non nil then ask to install
+package `helm-rg'."
   (helm-projectile--with-helm-rg
-   (if (and (file-directory-p directory)
-            (projectile-project-p directory))
-       (let* ((input (helm-projectile-rg--region-selection))
-              (projectile-switch-project-action
-               (lambda ()
-                 (helm-projectile--rg-1 (file-truename directory) input))))
-         (projectile-switch-project-by-name (projectile-project-root directory)))
-     (error (if (file-directory-p directory)
-                (format "Directory %s is not in any project!" directory)
-              (format "Not a directory %s" directory))))))
+      (lambda ()
+        (helm-projectile--switch-project-and-ag-action directory))
+    (if (and (file-directory-p directory)
+             (projectile-project-p directory))
+        (let* ((input (helm-projectile-rg--region-selection))
+               (projectile-switch-project-action
+                (lambda ()
+                  (helm-projectile--rg-1 (file-truename directory) input))))
+          (projectile-switch-project-by-name (projectile-project-root directory)))
+      (error (if (file-directory-p directory)
+                 (format "Directory %s is not in any project!" directory)
+               (format "Not a directory %s" directory))))))
 
 (defun helm-projectile-commander-bindings ()
   "Define Helm versions of Projectile commands in `projectile-commander'."
