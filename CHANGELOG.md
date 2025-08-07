@@ -19,10 +19,11 @@
 ### Changes
 
 * Add faces to sources that use files.
-* Add faces to `helm-projectile-browse-dirty-projects`.
-* Add autoloads to `helm-projectile` commands defined with `helm-projectile-command`.
-* Make `helm-projectile-ag` to use common ignore list
-* Don't add ** to ignored globs in helm-projectile-rg
+* Add faces to `helm-projectile-browse-dirty-projects`
+* Add autoloads to `helm-projectile` commands defined
+  with `helm-projectile-command`.
+* Make `helm-projectile-ag` to use common ignore list.
+* Don't add ** to ignored globs in helm-projectile-rg.
 
 ## 1.2.0 (2025-07-21)
 
