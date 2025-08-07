@@ -1529,7 +1529,7 @@ Otherwise ask to install package`helm-rg'."
        (condition-case nil
            (progn
              (package-install 'helm-rg)
-             (helm-projectile-rg))
+             ,@body)
          (error "`helm-rg' is not available.  Is MELPA in your `package-archives'?")))))
 
 (defun helm-projectile--rg-1 (directory input)
