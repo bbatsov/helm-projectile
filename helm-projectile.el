@@ -1543,15 +1543,10 @@ input to use for the search."
          (helm-rg--extra-args
           (if (helm-projectile--projectile-ignore-strategy)
               (mapcan (lambda (path) (list "--glob" path))
-                      (cl-union
-                       (mapcar (lambda (path)
-                                 (concat "!" path))
-                               (helm-projectile--ignored-files))
-                       (mapcar (lambda (path)
-                                 (concat "!" path "/**"))
-                               (mapcar 'directory-file-name
-                                       (helm-projectile--ignored-directories)))
-                       :test #'equal))
+                      (mapcar (lambda (path)
+                                (concat "!" path))
+                              (append (helm-projectile--ignored-files)
+                                      (helm-projectile--ignored-directories))))
             helm-rg--extra-args)))
     (helm-rg input nil)))
 
