@@ -1278,7 +1278,8 @@ When set to `search-tool', the above does not happen."
 
 (defun helm-projectile--ignored-directories ()
   "Compute ignored directories."
-  (cl-union (projectile-ignored-directories-rel) grep-find-ignored-directories
+  (cl-union (mapcar #'file-name-as-directory (projectile-ignored-directories-rel))
+            (mapcar #'file-name-as-directory grep-find-ignored-directories)
             :test #'equal))
 
 (defcustom helm-projectile-grep-or-ack-actions

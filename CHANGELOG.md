@@ -14,6 +14,7 @@
 ### Fixes
 
 * When searching with rg, ensure the directory is chosen based on projectile.
+* Ensure ignored directories elements are unique.
 
 ### Changes
 
