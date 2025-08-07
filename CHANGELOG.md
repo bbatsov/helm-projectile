@@ -17,24 +17,24 @@
 
 ### Changes
 
-* Add faces to sources that use files
-* Add faces to `helm-projectile-browse-dirty-projects`
-* Add autoloads to `helm-projectile` commands defined with `helm-projectile-command`
+* Add faces to sources that use files.
+* Add faces to `helm-projectile-browse-dirty-projects`.
+* Add autoloads to `helm-projectile` commands defined with `helm-projectile-command`.
 
 ## 1.2.0 (2025-07-21)
 
 ### Changes
 
-* [#193](https://github.com/bbatsov/helm-projectile/issues/193), [#195](https://github.com/bbatsov/helm-projectile/pull/195): Switch  to use built-in `helm-grep-ag`
+* [#193](https://github.com/bbatsov/helm-projectile/issues/193), [#195](https://github.com/bbatsov/helm-projectile/pull/195): Switch  to use built-in `helm-grep-ag`.
 
 ### Bugs fixed
 
 * Fix `checkdoc` and (some of) `package-lint` diagnostics.
 * Fix side effects in `helm-projectile-grep-or-ack` and `helm-projectile-ag`
 * [#173](https://github.com/bbatsov/helm-projectile/pull/191): Fix `helm-rg--extra-args` losing dynamic scope due to use of setq
-* [#173](https://github.com/bbatsov/helm-projectile/pull/173), [#194](https://github.com/bbatsov/helm-projectile/pull/194): Respect helm-buffer-max-length if it's nil
-* [#189](https://github.com/bbatsov/helm-projectile/pull/192): Fix helm-projectile-rg specifying incorrect extra args.
-* [#188](https://github.com/bbatsov/helm-projectile/pull/178): Fix helm-projectile-projects-source slots
+* [#173](https://github.com/bbatsov/helm-projectile/pull/173), [#194](https://github.com/bbatsov/helm-projectile/pull/194): Respect `helm-buffer-max-length` if it's `nil`.
+* [#189](https://github.com/bbatsov/helm-projectile/pull/192): Fix `helm-projectile-rg` specifying incorrect extra args.
+* [#188](https://github.com/bbatsov/helm-projectile/pull/178): Fix `helm-projectile-projects-source` slots.
 
 ## 1.1.0 (2025-02-14)
 
