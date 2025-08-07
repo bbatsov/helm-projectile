@@ -1,6 +1,6 @@
 # Changelog
 
-## master (unreleased)
+## 1.3.0 (2025-08-07)
 
 ### New features
 
