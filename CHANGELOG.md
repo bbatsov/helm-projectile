@@ -1,5 +1,21 @@
 # Changelog
 
+## master (unreleased)
+
+### New features
+* [#175](https://github.com/bbatsov/helm-projectile/issues/175): Add a setting to allow the current buffer
+  in `helm-source-projectile-buffers-list`.
+
+### Fixes
+
+* Ensure ignored directories elements are unique.
+
+### Changes
+
+* [#179](https://github.com/bbatsov/helm-projectile/issues/179) Only install package `helm-rg` when it is really needed.
+* Make `helm-projectile-ag` to use common ignore list.
+* Don't add ** to ignored globs in helm-projectile-rg.
+
 ## 1.3.0 (2025-08-07)
 
 ### New features
@@ -14,17 +30,13 @@
 ### Fixes
 
 * When searching with rg, ensure the directory is chosen based on projectile.
-* Ensure ignored directories elements are unique.
 
 ### Changes
 
-* [#179](https://github.com/bbatsov/helm-projectile/issues/179) Only install package `helm-rg` when it is really needed.
 * Add faces to sources that use files.
 * Add faces to `helm-projectile-browse-dirty-projects`
 * Add autoloads to `helm-projectile` commands defined
   with `helm-projectile-command`.
-* Make `helm-projectile-ag` to use common ignore list.
-* Don't add ** to ignored globs in helm-projectile-rg.
 
 ## 1.2.0 (2025-07-21)
 
