@@ -80,6 +80,15 @@ dictates the truncation in `helm-projectile-switch-to-buffer'."
   :group 'helm-projectile
   :type 'boolean)
 
+(defcustom helm-projectile-remove-current-buffer nil
+  "Non-nil if current buffer should be removed from buffer sources.
+For example from `helm-projectile' (when invoked from a project) as well
+as from `helm-projectile-switch-to-buffer',
+`helm-projectile-switch-to-buffer-other-window', and
+`helm-projectile-switch-to-buffer-other-frame'."
+  :type 'boolean
+  :group 'helm-projectile)
+
 ;;;###autoload
 (defcustom helm-projectile-fuzzy-match t
   "Enable fuzzy matching for Helm Projectile commands.
@@ -884,7 +893,14 @@ Meant to be added to `helm-cleanup-hook', from which it removes
   ((init :initform (lambda ()
                      ;; Issue #51 Create the list before `helm-buffer' creation.
                      (setq helm-projectile-buffers-list-cache
-                           (ignore-errors (remove (buffer-name) (projectile-project-buffer-names))))
+                           (ignore-errors
+                             (let* ((buffers (projectile-project-buffer-names))
+                                    (current-buffer (buffer-name)))
+                               (append (remove current-buffer buffers)
+                                       (unless helm-projectile-remove-current-buffer
+                                         ;; Allow current buffer to be shown,
+                                         ;; but push it to the end.
+                                         (list current-buffer))))))
                      (let ((result (cl-loop for b in helm-projectile-buffers-list-cache
                                             maximize (length b) into len-buf
                                             maximize (length (with-current-buffer b
