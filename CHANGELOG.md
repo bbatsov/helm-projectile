@@ -9,6 +9,7 @@
 ### Fixes
 
 * Ensure ignored directories elements are unique.
+* Ensure `helm-source-grep` is not set to a `helm-projectile` specific one.
 
 ### Changes
 
