@@ -3,6 +3,9 @@
 ## master (unreleased)
 
 ### New features
+
+* [#155](https://github.com/bbatsov/helm-projectile/issues/155): Allow to specify files/types to include when searching with `grep`
+  and `ack`.
 * [#175](https://github.com/bbatsov/helm-projectile/issues/175): Add a setting to allow the current buffer
   in `helm-source-projectile-buffers-list`.
 

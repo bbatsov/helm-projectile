@@ -1324,14 +1324,14 @@ one).  Applies to `helm-projectile-grep', `helm-projectile-ack', and
   :group 'helm-projectile
   :type 'boolean)
 
-(defun helm-projectile-grep-or-ack (&optional dir use-ack-p ack-ignored-pattern ack-executable)
+(defun helm-projectile-grep-or-ack (&optional dir use-ack-p ack-ignored-pattern ack-executable include)
   "Perform helm-grep at project root.
-DIR directory where to search
-USE-ACK-P indicates whether to use ack or not.
-ACK-IGNORED-PATTERN is a file regex to exclude from searching.
-ACK-EXECUTABLE is the actual ack binary name.
-It is usually \"ack\" or \"ack-grep\".
-If it is nil, or ack/ack-grep not found then use default grep command."
+DIR directory where to search.  USE-ACK-P indicates whether to use ack
+or not.  ACK-IGNORED-PATTERN is a file regex to exclude from searching.
+ACK-EXECUTABLE is the actual ack binary name.  It is usually \"ack\" or
+\"ack-grep\".  If it is nil, or ack/ack-grep not found then use default
+grep command.  INCLUDE is a string with patterns (for \"grep\") or
+types (for \"ack\") to include in search."
   (let* ((default-directory (or dir (projectile-project-root)))
          (helm-ff-default-directory default-directory)
          (helm-grep-in-recurse t)
@@ -1342,14 +1342,24 @@ If it is nil, or ack/ack-grep not found then use default grep command."
                                             (mapcar 'directory-file-name
                                                     (helm-projectile--ignored-directories))
                                           helm-grep-ignored-directories))
-         (helm-grep-default-command (if use-ack-p
-                                        (concat ack-executable " -H --no-group --no-color "
-                                                (when ack-ignored-pattern (concat ack-ignored-pattern " "))
-                                                "%p %f")
-                                      (if (and projectile-use-git-grep (eq (projectile-project-vcs) 'git))
-                                          helm-projectile-git-grep-command
-                                        helm-projectile-grep-command)))
+         (helm-grep-default-command
+          (if use-ack-p
+              (concat ack-executable " -H --no-group --no-color "
+                      (when include "%e ")
+                      (when ack-ignored-pattern (concat ack-ignored-pattern " "))
+                      "%p %f")
+            (if (and projectile-use-git-grep (eq (projectile-project-vcs) 'git))
+                helm-projectile-git-grep-command
+              (if include
+                  (replace-regexp-in-string (rx (one-or-more whitespace)
+                                                "."
+                                                (zero-or-more whitespace)
+                                                string-end)
+                                            ""
+                                            helm-projectile-grep-command)
+                helm-projectile-grep-command))))
          (helm-grep-default-recurse-command helm-grep-default-command)
+         (helm-grep-include-files include)
          (helm-source-grep
           (helm-build-async-source
               (capitalize (helm-grep-command t))
@@ -1399,38 +1409,74 @@ If it is nil, or ack/ack-grep not found then use default grep command."
   (helm-projectile-toggle -1))
 
 ;;;###autoload
-(defun helm-projectile-grep (&optional dir)
+(defun helm-projectile-grep (&optional dir files)
   "Helm version of `projectile-grep'.
-DIR is the project root, if not set then current directory is used"
+DIR is the project root, if not set then current project root is used.
+FILES is a list of file patterns to search in.  When called with a
+prefix argument then ask for FILES."
   (interactive)
-  (let ((project-root (or dir (projectile-project-root) (error "You're not in a project"))))
+  (let* ((project-root (or dir (projectile-project-root) (error "You're not in a project")))
+         (include (if (equal current-prefix-arg '(4))
+                      (read-string (projectile-prepend-project-name "Grep in: "))
+                    files)))
     (funcall 'run-with-timer 0.01 nil
-             #'helm-projectile-grep-or-ack project-root nil)))
+             #'helm-projectile-grep-or-ack project-root nil nil nil include)))
+
+(defun helm-projectile--wildcard-to-ack-match (wildcard)
+  "Transform WILDCARD into a form expected by \"match:\" filter of \"ack\"."
+  ;; FIXME: Make the following more robust such that [...[!...] won't be
+  ;; changed.
+  (thread-last
+    wildcard
+    (replace-regexp-in-string (rx ".") ;; "." -> "\."
+                              "\\\\.")
+    (replace-regexp-in-string (rx "?") ;; "?" -> "."
+                              ".")
+    (replace-regexp-in-string (rx "*") ;; "*" -> ".*"
+                              ".*")
+    (replace-regexp-in-string (rx (or string-start (not "[")) "[!") ;; [!...] -> [^...], but don't change [[!]
+                              "[^")
+    (replace-regexp-in-string (rx (group (one-or-more any))) ;; Wrap everything in ^...$
+                              "^\\1$")))
 
 ;;;###autoload
-(defun helm-projectile-ack (&optional dir)
-  "Helm version of projectile-ack.
-DIR directory where to search"
+(defun helm-projectile-ack (&optional dir types)
+  "Helm version of `projectile-ack'.
+DIR directory where to search, if not set then current project root is
+used.  TYPES is a list of types to include in search.  When called with
+a prefix argument, then ask for TYPES."
   (interactive)
   (let* ((project-root (or dir (projectile-project-root) (error "You're not in a project")))
          (ignored (when (helm-projectile--projectile-ignore-strategy)
                     (mapconcat
                      'identity
                      (cl-union (mapcar (lambda (path)
-                                         (concat "--ignore-dir=" (file-name-nondirectory (directory-file-name path))))
+                                         (concat "--ignore-dir="
+                                                 (file-name-nondirectory
+                                                  (directory-file-name path))))
                                        (helm-projectile--ignored-directories))
                                (mapcar (lambda (path)
-                                         (concat "--ignore-file=match:" (shell-quote-argument path)))
-                                       (append (helm-projectile--ignored-files)
-                                               (projectile-patterns-to-ignore)))
+                                         (concat "--ignore-file=match:"
+                                                 (thread-last
+                                                   path
+                                                   (helm-projectile--wildcard-to-ack-match)
+                                                   (shell-quote-argument))))
+                                       (append
+                                        (helm-projectile--ignored-files)
+                                        (projectile-patterns-to-ignore)))
                                :test #'equal)
                      " ")))
          (helm-ack-grep-executable (cond
                                     ((executable-find "ack") "ack")
                                     ((executable-find "ack-grep") "ack-grep")
-                                    (t (error "Neither 'ack' nor 'ack-grep' is available")))))
+                                    (t (error "Neither 'ack' nor 'ack-grep' is available"))))
+         (include (if (equal current-prefix-arg '(4))
+                      (let ((helm-grep-default-recurse-command helm-ack-grep-executable)
+                            (helm-grep-default-command helm-ack-grep-executable))
+                        (helm-grep-read-ack-type))
+                    types)))
     (funcall 'run-with-timer 0.01 nil
-             #'helm-projectile-grep-or-ack project-root t ignored helm-ack-grep-executable)))
+             #'helm-projectile-grep-or-ack project-root t ignored helm-ack-grep-executable include)))
 
 (defvar helm-projectile--ag-input nil
   "The value of input to be used in a next `helm-projectile-ag' call.")
