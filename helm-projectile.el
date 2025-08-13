@@ -832,7 +832,8 @@ Meant to be added to `helm-cleanup-hook', from which it removes
 (defclass helm-source-projectile-directory (helm-source-sync)
   ((candidates :initform (lambda ()
                            (when (projectile-project-p)
-                             (with-helm-current-buffer
+                             (with-temp-buffer
+                               (hack-dir-local-variables-non-file-buffer)
                                (let ((dirs (if projectile-find-dir-includes-top-level
                                                (append '("./") (projectile-current-project-dirs))
                                              (projectile-current-project-dirs))))
@@ -959,7 +960,8 @@ Meant to be added to `helm-cleanup-hook', from which it removes
   (helm-build-sync-source "Projectile recent files"
     :candidates (lambda ()
                   (when (projectile-project-p)
-                    (with-helm-current-buffer
+                    (with-temp-buffer
+                      (hack-dir-local-variables-non-file-buffer)
                       (helm-projectile--files-display-real (projectile-recentf-files)
                                                            (projectile-project-root)))))
     :fuzzy-match helm-projectile-fuzzy-match
