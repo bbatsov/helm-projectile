@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.1 (2025-08-07)
+
+Snap release - bump version only.
+
 ## 1.3.0 (2025-08-07)
 
 ### New features
