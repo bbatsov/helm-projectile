@@ -21,6 +21,16 @@
 * Make `helm-projectile-ag` to use common ignore list.
 * Don't add ** to ignored globs in helm-projectile-rg.
 
+## 1.3.2 (2025-08-14)
+
+### Fixes
+
+* [#196](https://github.com/bbatsov/helm-projectile/issues/196): Opening project no longer respects `projectile-switch-project-action`.
+
+## 1.3.1 (2025-08-07)
+
+Snap release - bump version only.
+
 ## 1.3.0 (2025-08-07)
 
 ### New features

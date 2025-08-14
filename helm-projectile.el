@@ -7,7 +7,7 @@
 ;; Maintainer: Przemysław Kryger
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
-;; Version: 1.3.1
+;; Version: 1.3.2
 ;; Package-Requires: ((emacs "26.1") (helm "3.0") (projectile "2.9"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -224,9 +224,14 @@ It is there because Helm requires it."
         (message "%s projects(s) removed" len)))))
 
 (defun helm-projectile-switch-project-by-name (project)
-  "Switch to PROJECT and find file in it."
+  "Switch to PROJECT and execute `projectile-switch-project-action' in it.
+When `projectile-switch-project-action' is `projectile-find-file' a
+`helm-projectile-find-file' will be used instead."
   (let ((projectile-completion-system 'helm)
-        (projectile-switch-project-action #'helm-projectile-find-file))
+        (projectile-switch-project-action
+         (if (eq projectile-switch-project-action 'projectile-find-file)
+             #'helm-projectile-find-file
+           projectile-switch-project-action)))
     (projectile-switch-project-by-name project)))
 
 (defun helm-projectile-switch-project-by-name-other-window (project)
