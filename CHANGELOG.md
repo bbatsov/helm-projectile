@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.2 (2025-08-14)
+
+### Fixes
+
+* [#196](https://github.com/bbatsov/helm-projectile/issues/196): Opening project no longer respects `projectile-switch-project-action`.
+
 ## 1.3.1 (2025-08-07)
 
 Snap release - bump version only.

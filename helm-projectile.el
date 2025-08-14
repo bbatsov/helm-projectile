@@ -7,7 +7,7 @@
 ;; Maintainer: Przemysław Kryger
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
-;; Version: 1.3.1
+;; Version: 1.3.2
 ;; Package-Requires: ((emacs "26.1") (helm "3.0") (projectile "2.9"))
 
 ;; This file is NOT part of GNU Emacs.
