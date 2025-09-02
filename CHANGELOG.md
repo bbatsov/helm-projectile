@@ -2,6 +2,8 @@
 
 ## master (unreleased)
 
+## 1.4.0 (2025-09-02)
+
 ### New features
 
 * [#155](https://github.com/bbatsov/helm-projectile/issues/155): Allow to specify files/types to include when searching with `grep`
