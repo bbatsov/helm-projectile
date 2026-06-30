@@ -2,6 +2,17 @@
 
 ## master (unreleased)
 
+### Changes
+
+* Restore compatibility with Projectile's `master`, which removed several commands helm-projectile relied on:
+  * Drop the Helm commander bindings. Projectile removed its single-key commander (`def-projectile-commander-method` / `projectile-commander-bindings`) in favor of the `projectile-dispatch` transient menu, so `C-c p m` now opens that menu. Without this change, enabling `helm-projectile` errored against current Projectile.
+  * Remove `helm-projectile-browse-dirty-projects`, mirroring Projectile dropping `projectile-browse-dirty-projects` (and the slow `vc-dir`-scraping helper it called).
+* Require Emacs 27.1+, matching Projectile's own minimum.
+
+### Internal
+
+* Add a Buttercup test suite and a GitHub Actions CI workflow (running inside the `silex/emacs` Docker images across Emacs 27.2-30.2 and snapshot).
+
 ## 1.4.0 (2025-09-02)
 
 ### New features
