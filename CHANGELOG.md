@@ -9,6 +9,11 @@
   * Remove `helm-projectile-browse-dirty-projects`, mirroring Projectile dropping `projectile-browse-dirty-projects` (and the slow `vc-dir`-scraping helper it called).
 * Require Emacs 27.1+, matching Projectile's own minimum.
 
+### Bugs fixed
+
+* Fix loading/byte-compilation on Emacs 27 and 28: the `helm-projectile-define-key` helper used `while-let`, which only exists on Emacs 29.1+, so the package failed to load on older Emacsen despite declaring support for them. Replaced with a portable loop.
+* Silence an obsolete bare `any` form in an `rx` expression (it now warns on recent Emacs); use `nonl`, preserving the original meaning.
+
 ### Internal
 
 * Add a Buttercup test suite and a GitHub Actions CI workflow (running inside the `silex/emacs` Docker images across Emacs 27.2-30.2 and snapshot).
