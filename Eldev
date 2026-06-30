@@ -1,0 +1,12 @@
+; -*- mode: emacs-lisp; lexical-binding: t -*-
+
+(eldev-use-package-archive 'gnu-elpa)
+(eldev-use-package-archive 'nongnu-elpa)
+(eldev-use-package-archive 'melpa)
+
+;; The test suite lives in `test/' and shares a small helper module that every
+;; suite `require's, so put that directory on the load path when running tests.
+(eldev-add-loading-roots 'test "test")
+
+;; Buttercup is the test framework.
+(eldev-add-extra-dependencies 'test 'buttercup)
