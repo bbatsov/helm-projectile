@@ -95,6 +95,7 @@ these are the supported commands:
 
 * `helm-projectile-switch-project`
 * `helm-projectile-find-file`
+* `helm-projectile-find-file-streaming` (streams candidates as the project is indexed)
 * `helm-projectile-find-file-in-known-projects`
 * `helm-projectile-find-file-dwim`
 * `helm-projectile-find-dir`
