@@ -2,6 +2,8 @@
 
 ## master (unreleased)
 
+## 1.5.0 (2026-06-30)
+
 ### New features
 
 * Add `helm-projectile-find-file-streaming`, a Helm file picker that streams candidates as Projectile's indexing command lists them (using a Helm async source) instead of waiting for the whole project to be indexed. Useful on large or remote projects. For Git projects it lists exactly what the indexing command prints, so unlike `helm-projectile-find-file' it doesn't fold in submodule files or drop deleted-but-unstaged ones.
