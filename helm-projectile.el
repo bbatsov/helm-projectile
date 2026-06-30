@@ -1086,6 +1086,57 @@ With a prefix ARG invalidates the cache first."
                                (cdr file-res))
                        file-res))))
 
+(defun helm-projectile--files-stream-command ()
+  "Return the shell command that streams the current project's files.
+The command is Projectile's own indexing command for the project's VCS
+\(see `projectile-get-ext-command'), so it honours the project's setup.
+Its NUL-separated output is piped through `tr' to newline-separate it,
+because Helm's process sources split their input on newlines.  Signals a
+`user-error' when external-command indexing is unavailable."
+  (let* ((default-directory (projectile-project-root))
+         (command (projectile-get-ext-command (projectile-project-vcs))))
+    (unless (and (stringp command) (not (string-empty-p command)))
+      (user-error "External-command indexing is unavailable for this project"))
+    ;; Octal \000 (not \0) so the escape is understood by both GNU and BSD tr.
+    (concat command " | tr '\\000' '\\n'")))
+
+(defun helm-projectile--files-process ()
+  "Start the project indexing command as a process for streaming candidates."
+  (let ((default-directory (projectile-project-root)))
+    (start-process-shell-command
+     "helm-projectile-files" nil (helm-projectile--files-stream-command))))
+
+(defvar helm-source-projectile-files-streaming
+  (helm-build-async-source "Projectile files (streaming)"
+    :candidates-process #'helm-projectile--files-process
+    ;; Candidates arrive as project-relative paths; strip a leading "./"
+    ;; (as Projectile does) and pair each with its absolute path so the
+    ;; file actions get a real filename to act on.
+    :filtered-candidate-transformer
+    (lambda (candidates _source)
+      (helm-projectile--files-display-real
+       (mapcar (lambda (c) (string-remove-prefix "./" c)) candidates)
+       (projectile-project-root)))
+    :keymap helm-projectile-find-file-map
+    :help-message 'helm-ff-help-message
+    :mode-line helm-read-file-name-mode-line-string
+    :action helm-projectile-file-actions
+    :persistent-action #'helm-projectile-file-persistent-action
+    :persistent-help "Preview file"
+    :candidate-number-limit 9999)
+  "Helm async source that streams the project's files.
+Candidates are produced by Projectile's own indexing command and appear as
+they are listed, instead of blocking until the whole project is indexed.
+
+Note: for Git projects this lists exactly what the indexing command prints,
+which (unlike `helm-projectile-find-file') does not fold in submodule files
+or drop deleted-but-unstaged files.")
+
+;;;###autoload(autoload 'helm-projectile-find-file-streaming "helm-projectile" nil t)
+(helm-projectile-command "find-file-streaming"
+                         'helm-source-projectile-files-streaming
+                         "Find file (streaming): ")
+
 (defun helm-projectile--find-file-dwim-1 (one-candidate-action actions prompt)
   "Find file at point based on context.
 Execute ONE-CANDIDATE-ACTION when there is a single file returned by

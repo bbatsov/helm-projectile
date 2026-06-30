@@ -66,6 +66,25 @@
       (expect (mapcar #'cdr result)
               :to-equal '("/proj/a.el" "/proj/src/b.el")))))
 
+(describe "helm-projectile streaming file source"
+  (it "defines the streaming command and its source"
+    (expect (commandp 'helm-projectile-find-file-streaming) :to-be-truthy)
+    (expect (boundp 'helm-source-projectile-files-streaming) :to-be-truthy))
+
+  (it "builds a newline-translating shell command from the project's indexer"
+    (spy-on 'projectile-project-root :and-return-value "/proj/")
+    (spy-on 'projectile-project-vcs :and-return-value 'git)
+    (spy-on 'projectile-get-ext-command
+            :and-return-value "git ls-files -zco --exclude-standard")
+    (expect (helm-projectile--files-stream-command)
+            :to-equal "git ls-files -zco --exclude-standard | tr '\\000' '\\n'"))
+
+  (it "errors when external-command indexing is unavailable"
+    (spy-on 'projectile-project-root :and-return-value "/proj/")
+    (spy-on 'projectile-project-vcs :and-return-value 'none)
+    (spy-on 'projectile-get-ext-command :and-return-value nil)
+    (expect (helm-projectile--files-stream-command) :to-throw 'user-error)))
+
 (describe "removed features"
   ;; Mirrors Projectile dropping its single-key commander and the
   ;; browse-dirty-projects command; helm-projectile must not resurrect them.
