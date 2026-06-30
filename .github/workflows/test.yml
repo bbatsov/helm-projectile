@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    paths-ignore: ['**.md', '**.adoc']
+  pull_request:
+    paths-ignore: ['**.md', '**.adoc']
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    # Run inside the prebuilt silex/emacs images (Eldev baked in).  Eldev pulls
+    # the project's dependencies (helm, projectile) and buttercup from the
+    # package archives.  The matrix `snapshot' label maps to the image's
+    # `master' tag.
+    container: silex/emacs:${{ matrix.emacs_version == 'snapshot' && 'master' || matrix.emacs_version }}-ci-eldev
+    continue-on-error: ${{matrix.emacs_version == 'snapshot'}}
+
+    strategy:
+      matrix:
+        # Earliest supported + latest in each stable branch + snapshot.
+        emacs_version: ['27.2', '28.2', '29.4', '30.2', 'snapshot']
+
+    steps:
+    - name: Check out the source code
+      uses: actions/checkout@v6
+
+    - name: Test the project
+      run: |
+        eldev -p -dtT test
+        eldev -dtT compile --warnings-as-errors
