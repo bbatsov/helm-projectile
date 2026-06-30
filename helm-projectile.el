@@ -104,14 +104,17 @@ BINDINS is a list in a form of (KEY1 DEF1 KEY2 DEF2 ...)."
             (= 1 (% 2 (length bindings))))
     (error "Expected BINDINGS to be KEY1 DEF1 KEY2 DEF2 ... "))
   (let ((ret '(progn)))
-    (while-let ((key (car bindings))
-                (def (cadr bindings)))
-      (push
-       `(define-key ,keymap ,key
-                    (lambda ()
-                      (interactive)
-                      (helm-exit-and-execute-action ,def)))
-       ret)
+    ;; A plain `while' (rather than `while-let') keeps this macro usable on
+    ;; Emacs < 29.1; the length check above guarantees BINDINGS comes in pairs.
+    (while bindings
+      (let ((key (car bindings))
+            (def (cadr bindings)))
+        (push
+         `(define-key ,keymap ,key
+                      (lambda ()
+                        (interactive)
+                        (helm-exit-and-execute-action ,def)))
+         ret))
       (setq bindings (cddr bindings)))
     (reverse ret)))
 
@@ -1374,7 +1377,7 @@ prefix argument then ask for FILES."
                               ".*")
     (replace-regexp-in-string (rx (or string-start (not "[")) "[!") ;; [!...] -> [^...], but don't change [[!]
                               "[^")
-    (replace-regexp-in-string (rx (group (one-or-more any))) ;; Wrap everything in ^...$
+    (replace-regexp-in-string (rx (group (one-or-more nonl))) ;; Wrap everything in ^...$
                               "^\\1$")))
 
 ;;;###autoload
