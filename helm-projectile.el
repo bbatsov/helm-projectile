@@ -8,7 +8,7 @@
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
 ;; Version: 1.4.0
-;; Package-Requires: ((emacs "26.1") (helm "3.0") (projectile "2.9"))
+;; Package-Requires: ((emacs "27.1") (helm "3.0") (projectile "2.9"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -334,70 +334,6 @@ to be specific to `helm-projectile-projects-source'."
         (helm-projectile-hack-actions
          helm-source-projectile-projects-actions
          '(helm-projectile-switch-project-by-name-other-frame . :make-first))))
-
-(defvar helm-projectile-dirty-projects-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map helm-map)
-    (helm-projectile-define-key map
-      (kbd "C-d") #'dired
-      (kbd "M-o") #'helm-projectile-switch-project-by-name
-      (kbd "C-c o") #'helm-projectile-switch-project-by-name-other-window
-      (kbd "C-c C-o") #'helm-projectile-switch-project-by-name-other-frame
-      (kbd "M-e") #'helm-projectile-switch-to-shell
-      (kbd "C-s") #'helm-projectile-grep
-      (kbd "M-c") #'helm-projectile-compile-project
-      (kbd "M-t") #'helm-projectile-test-project
-      (kbd "M-r") #'helm-projectile-run-project
-      (kbd "M-D") #'helm-projectile-remove-known-project
-      (kbd "C-S-a") #'helm-projectile--switch-project-and-ag-action
-      (kbd "C-S-r") #'helm-projectile--switch-project-and-rg-action)
-    map)
-  "Mapping for dirty projectile projects.")
-
-(defvar helm-source-projectile-dirty-projects
-  (helm-build-sync-source "Projectile dirty projects"
-    :candidates (lambda () (with-helm-current-buffer (helm-projectile-get-dirty-projects)))
-    :fuzzy-match helm-projectile-fuzzy-match
-    :keymap helm-projectile-dirty-projects-map
-    :mode-line helm-read-file-name-mode-line-string
-    :action '(("Open project root in vc-dir or magit" . helm-projectile-vc)
-              ("Switch to project `M-o'" . helm-projectile-switch-project-by-name)
-              ("Switch to project other window `C-c o'" . helm-projectile-switch-project-by-name-other-window)
-              ("Switch to project other frame `C-c C-o'" . helm-projectile-switch-project-by-name-other-frame)
-              ("Open Dired in project's directory `C-d'" . dired)
-              ("Switch to Eshell `M-e'" . helm-projectile-switch-to-shell)
-              ("Grep in projects `C-s'" . helm-projectile-grep)
-              ("Compile project `M-c'. With C-u, new compile command"
-               . helm-projectile-compile-project)
-              ("Silver searcher (ag) in project `C-S-a'" . helm-projectile--switch-project-and-ag-action)
-              ("Ripgrep (rg) in project `C-S-r'" . helm-projectile--switch-project-and-rg-action)))
-    "Helm source for dirty version controlled projectile projects.")
-
-(defun helm-projectile-get-dirty-projects ()
-  "Return dirty version controlled known projects.
-The value is returned as an alist to have a nice display in Helm."
-  (message "Checking for dirty known projects...")
-  (let* ((status (projectile-check-vcs-status-of-known-projects))
-         (proj-dir (cl-loop for stat in status
-                            collect (car stat)))
-         (status-display (cl-loop for stat in status collect
-                                  (propertize (format "[%s]"
-                                                      (mapconcat 'identity
-                                                                 (car (cdr stat)) ", "))
-                                              'face 'helm-match)))
-         (max-status-display-length (cl-loop for sd in status-display
-                                             maximize (length sd)))
-         (status-display (cl-loop for sd in status-display collect
-                                  (format "%s%s    "
-                                          sd
-                                          (make-string
-                                           (- max-status-display-length (length sd)) ? ))))
-         (full-display (cl-mapcar 'concat
-                                  status-display
-                                  (mapcar (lambda (dir)
-                                            (propertize dir 'face 'helm-ff-directory))
-                                          proj-dir))))
-    (cl-pairlis full-display proj-dir)))
 
 (define-key helm-etags-map (kbd "C-c p f")
   (lambda ()
@@ -1125,9 +1061,6 @@ With a prefix ARG invalidates the cache first."
                          'helm-source-projectile-buffers-other-frame-list
                          "Switch to buffer (other frame): " nil helm-buffers-truncate-lines)
 
-;;;###autoload(autoload 'helm-projectile-browse-dirty-projects "helm-projectile" nil t)
-(helm-projectile-command "browse-dirty-projects" 'helm-source-projectile-dirty-projects "Select a project: " t)
-
 (defun helm-projectile--files-display-real (files root)
   "Create (DISPLAY . REAL) pairs with FILES and ROOT.
 
@@ -1446,7 +1379,7 @@ prefix argument then ask for FILES."
 
 ;;;###autoload
 (defun helm-projectile-ack (&optional dir types)
-  "Helm version of `projectile-ack'.
+  "Run an ack search in the current project with Helm.
 DIR directory where to search, if not set then current project root is
 used.  TYPES is a list of types to include in search.  When called with
 a prefix argument, then ask for TYPES."
@@ -1673,44 +1606,6 @@ package `helm-rg'."
                  (format "Directory %s is not in any project!" directory)
                (format "Not a directory %s" directory))))))
 
-(defun helm-projectile-commander-bindings ()
-  "Define Helm versions of Projectile commands in `projectile-commander'."
-  (def-projectile-commander-method ?a
-    "Run ack on project."
-    (call-interactively 'helm-projectile-ack))
-
-  (def-projectile-commander-method ?A
-    "Find ag on project."
-    (call-interactively 'helm-projectile-ag))
-
-  (def-projectile-commander-method ?f
-    "Find file in project."
-    (helm-projectile-find-file))
-
-  (def-projectile-commander-method ?b
-    "Switch to project buffer."
-    (helm-projectile-switch-to-buffer))
-
-  (def-projectile-commander-method ?d
-    "Find directory in project."
-    (helm-projectile-find-dir))
-
-  (def-projectile-commander-method ?g
-    "Run grep on project."
-    (helm-projectile-grep))
-
-  (def-projectile-commander-method ?s
-    "Switch project."
-    (helm-projectile-switch-project))
-
-  (def-projectile-commander-method ?e
-    "Find recently visited file in project."
-    (helm-projectile-recentf))
-
-  (def-projectile-commander-method ?V
-    "Find dirty projects."
-    (helm-projectile-browse-dirty-projects)))
-
 ;;;###autoload
 (defun helm-projectile-toggle (toggle)
   "Toggle Helm version of Projectile commands.
@@ -1752,11 +1647,8 @@ off."
         (define-key projectile-mode-map [remap projectile-switch-to-buffer-other-window] #'helm-projectile-switch-to-buffer-other-window)
         (define-key projectile-mode-map [remap projectile-switch-to-buffer-other-frame] #'helm-projectile-switch-to-buffer-other-frame)
         (define-key projectile-mode-map [remap projectile-grep] #'helm-projectile-grep)
-        (define-key projectile-mode-map [remap projectile-ack] #'helm-projectile-ack)
         (define-key projectile-mode-map [remap projectile-ag] #'helm-projectile-ag)
-        (define-key projectile-mode-map [remap projectile-ripgrep] #'helm-projectile-rg)
-        (define-key projectile-mode-map [remap projectile-browse-dirty-projects] #'helm-projectile-browse-dirty-projects)
-        (helm-projectile-commander-bindings))
+        (define-key projectile-mode-map [remap projectile-ripgrep] #'helm-projectile-rg))
     (progn
       (when (eq projectile-switch-project-action #'helm-projectile-find-file)
         (setq projectile-switch-project-action #'projectile-find-file))
@@ -1786,9 +1678,7 @@ off."
       (define-key projectile-mode-map [remap projectile-switch-to-buffer-other-frame] nil)
       (define-key projectile-mode-map [remap projectile-grep] nil)
       (define-key projectile-mode-map [remap projectile-ag] nil)
-      (define-key projectile-mode-map [remap projectile-ripgrep] nil)
-      (define-key projectile-mode-map [remap projectile-browse-dirty-projects] nil)
-      (projectile-commander-bindings))))
+      (define-key projectile-mode-map [remap projectile-ripgrep] nil))))
 
 ;;;###autoload
 (defun helm-projectile (&optional arg)
