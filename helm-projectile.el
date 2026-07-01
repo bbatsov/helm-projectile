@@ -1664,78 +1664,68 @@ package `helm-rg'."
                          (format "Not a directory %s" directory))))))
 
 ;;;###autoload
+(defconst helm-projectile--command-remaps
+  '((projectile-find-other-file . helm-projectile-find-other-file)
+    (projectile-find-other-file-other-window . helm-projectile-find-other-file-other-window)
+    (projectile-find-other-file-other-frame . helm-projectile-find-other-file-other-frame)
+    (projectile-find-file . helm-projectile-find-file)
+    (projectile-find-file-other-window . helm-projectile-find-file-other-window)
+    (projectile-find-file-other-frame . helm-projectile-find-file-other-frame)
+    (projectile-find-file-in-known-projects . helm-projectile-find-file-in-known-projects)
+    (projectile-find-file-dwim . helm-projectile-find-file-dwim)
+    (projectile-find-file-dwim-other-window . helm-projectile-find-file-dwim-other-window)
+    (projectile-find-file-dwim-other-frame . helm-projectile-find-file-dwim-other-frame)
+    (projectile-find-dir . helm-projectile-find-dir)
+    (projectile-find-dir-other-window . helm-projectile-find-dir-other-window)
+    (projectile-find-dir-other-frame . helm-projectile-find-dir-other-frame)
+    (projectile-switch-project . helm-projectile-switch-project)
+    (projectile-recentf . helm-projectile-recentf)
+    (projectile-switch-to-buffer . helm-projectile-switch-to-buffer)
+    (projectile-switch-to-buffer-other-window . helm-projectile-switch-to-buffer-other-window)
+    (projectile-switch-to-buffer-other-frame . helm-projectile-switch-to-buffer-other-frame)
+    (projectile-grep . helm-projectile-grep)
+    (projectile-ag . helm-projectile-ag)
+    (projectile-ripgrep . helm-projectile-rg))
+  "Alist mapping Projectile commands to their `helm-projectile' replacements.
+`helm-projectile-toggle' installs and removes these as command remaps on
+`projectile-mode-map'.  The `switch-project' other-window/other-frame
+commands are handled separately because they need a compatibility
+fallback.")
+
 (defun helm-projectile-toggle (toggle)
   "Toggle Helm version of Projectile commands.
 When TOGGLE is greater than 0 turn Helm version of Projectile commands
 on.  When TOGGLE is is less or equal to 0 turn Helm version of commands
 off."
-  (if (> toggle 0)
-      (progn
+  (let ((enable (> toggle 0)))
+    (if enable
         (when (eq projectile-switch-project-action #'projectile-find-file)
           (setq projectile-switch-project-action #'helm-projectile-find-file))
-        (define-key projectile-mode-map [remap projectile-find-other-file] #'helm-projectile-find-other-file)
-        (define-key projectile-mode-map [remap projectile-find-other-file-other-window] #'helm-projectile-find-other-file-other-window)
-        (define-key projectile-mode-map [remap projectile-find-other-file-other-frame] #'helm-projectile-find-other-file-other-frame)
-        (define-key projectile-mode-map [remap projectile-find-file] #'helm-projectile-find-file)
-        (define-key projectile-mode-map [remap projectile-find-file-other-window] #'helm-projectile-find-file-other-window)
-        (define-key projectile-mode-map [remap projectile-find-file-other-frame] #'helm-projectile-find-file-other-frame)
-        (define-key projectile-mode-map [remap projectile-find-file-in-known-projects] #'helm-projectile-find-file-in-known-projects)
-        (define-key projectile-mode-map [remap projectile-find-file-dwim] #'helm-projectile-find-file-dwim)
-        (define-key projectile-mode-map [remap projectile-find-file-dwim-other-window] #'helm-projectile-find-file-dwim-other-window)
-        (define-key projectile-mode-map [remap projectile-find-file-dwim-other-frame] #'helm-projectile-find-file-dwim-other-frame)
-        (define-key projectile-mode-map [remap projectile-find-dir] #'helm-projectile-find-dir)
-        (define-key projectile-mode-map [remap projectile-find-dir-other-window] #'helm-projectile-find-dir-other-window)
-        (define-key projectile-mode-map [remap projectile-find-dir-other-frame] #'helm-projectile-find-dir-other-frame)
-        (define-key projectile-mode-map [remap projectile-switch-project] #'helm-projectile-switch-project)
-        ;; At the time of writing projectile didn't have neither
-        ;; `projectile-switch-to-project-other-window' nor
-        ;; `projectile-switch-to-project-other-frame' (hopefully these will be
-        ;; names should they be added).  Adding `helm-projectile' bindings in a
-        ;; - hopefully - backward compatible way, by setting up keys in
-        ;; `projectile-command-map'.
-        (if (where-is-internal 'projectile-switch-project-other-window projectile-mode-map nil t t)
-            (define-key projectile-mode-map [remap projectile-switch-project-other-window] #'helm-projectile-switch-project-other-window)
-          (define-key projectile-command-map (kbd "4 p") #'helm-projectile-switch-project-other-window))
-        (if (where-is-internal 'projectile-switch-project-other-frame projectile-mode-map nil t t)
-            (define-key projectile-mode-map [remap projectile-switch-project-other-frame] #'helm-projectile-switch-project-other-frame)
-          (define-key projectile-command-map (kbd "5 p") #'helm-projectile-switch-project-other-frame))
-        (define-key projectile-mode-map [remap projectile-recentf] #'helm-projectile-recentf)
-        (define-key projectile-mode-map [remap projectile-switch-to-buffer] #'helm-projectile-switch-to-buffer)
-        (define-key projectile-mode-map [remap projectile-switch-to-buffer-other-window] #'helm-projectile-switch-to-buffer-other-window)
-        (define-key projectile-mode-map [remap projectile-switch-to-buffer-other-frame] #'helm-projectile-switch-to-buffer-other-frame)
-        (define-key projectile-mode-map [remap projectile-grep] #'helm-projectile-grep)
-        (define-key projectile-mode-map [remap projectile-ag] #'helm-projectile-ag)
-        (define-key projectile-mode-map [remap projectile-ripgrep] #'helm-projectile-rg))
-    (progn
       (when (eq projectile-switch-project-action #'helm-projectile-find-file)
-        (setq projectile-switch-project-action #'projectile-find-file))
-      (define-key projectile-mode-map [remap projectile-find-other-file] nil)
-      (define-key projectile-mode-map [remap projectile-find-other-file-other-window] nil)
-      (define-key projectile-mode-map [remap projectile-find-other-file-other-frame] nil)
-      (define-key projectile-mode-map [remap projectile-find-file] nil)
-      (define-key projectile-mode-map [remap projectile-find-file-other-window] nil)
-      (define-key projectile-mode-map [remap projectile-find-file-other-frame] nil)
-      (define-key projectile-mode-map [remap projectile-find-file-in-known-projects] nil)
-      (define-key projectile-mode-map [remap projectile-find-file-dwim] nil)
-      (define-key projectile-mode-map [remap projectile-find-file-dwim-other-window] nil)
-      (define-key projectile-mode-map [remap projectile-find-file-dwim-other-frame] nil)
-      (define-key projectile-mode-map [remap projectile-find-dir] nil)
-      (define-key projectile-mode-map [remap projectile-find-dir-other-window] nil)
-      (define-key projectile-mode-map [remap projectile-find-dir-other-frame] nil)
-      (define-key projectile-mode-map [remap projectile-switch-project] nil)
+        (setq projectile-switch-project-action #'projectile-find-file)))
+    (pcase-dolist (`(,command . ,helm-command) helm-projectile--command-remaps)
+      (define-key projectile-mode-map (vector 'remap command)
+                  (and enable helm-command)))
+    (if enable
+        (progn
+          ;; At the time of writing projectile didn't have neither
+          ;; `projectile-switch-to-project-other-window' nor
+          ;; `projectile-switch-to-project-other-frame' (hopefully these will be
+          ;; names should they be added).  Adding `helm-projectile' bindings in a
+          ;; - hopefully - backward compatible way, by setting up keys in
+          ;; `projectile-command-map'.
+          (if (where-is-internal 'projectile-switch-project-other-window projectile-mode-map nil t t)
+              (define-key projectile-mode-map [remap projectile-switch-project-other-window] #'helm-projectile-switch-project-other-window)
+            (define-key projectile-command-map (kbd "4 p") #'helm-projectile-switch-project-other-window))
+          (if (where-is-internal 'projectile-switch-project-other-frame projectile-mode-map nil t t)
+              (define-key projectile-mode-map [remap projectile-switch-project-other-frame] #'helm-projectile-switch-project-other-frame)
+            (define-key projectile-command-map (kbd "5 p") #'helm-projectile-switch-project-other-frame)))
       (if (where-is-internal 'helm-projectile-switch-project-other-window projectile-command-map nil t t)
           (define-key projectile-mode-map (kbd "4 p") nil)
         (define-key projectile-mode-map [remap projectile-switch-project-other-window] nil))
       (if (where-is-internal 'helm-projectile-switch-project-other-frame projectile-command-map nil t t)
           (define-key projectile-mode-map (kbd "5 p") nil)
-        (define-key projectile-mode-map [remap projectile-switch-project-other-frame] nil))
-      (define-key projectile-mode-map [remap projectile-recentf] nil)
-      (define-key projectile-mode-map [remap projectile-switch-to-buffer] nil)
-      (define-key projectile-mode-map [remap projectile-switch-to-buffer-other-window] nil)
-      (define-key projectile-mode-map [remap projectile-switch-to-buffer-other-frame] nil)
-      (define-key projectile-mode-map [remap projectile-grep] nil)
-      (define-key projectile-mode-map [remap projectile-ag] nil)
-      (define-key projectile-mode-map [remap projectile-ripgrep] nil))))
+        (define-key projectile-mode-map [remap projectile-switch-project-other-frame] nil)))))
 
 ;;;###autoload
 (defun helm-projectile (&optional arg)
