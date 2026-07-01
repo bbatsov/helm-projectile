@@ -396,7 +396,7 @@ See also `helm-etags-select'."
                    (progn (end-of-line)
                           (funcall #'fpush file))))
             (forward-line 1)))))
-    (mapcar 'file-truename (nreverse flist))))
+    (mapcar #'file-truename (nreverse flist))))
 
 (defun helm-projectile-all-dired-buffers ()
   "Get all current Dired buffers."
@@ -476,7 +476,7 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
                                                  (list candidate))
                                                dired-files
                                                :test #'string-equal))
-                            'string-lessp)))
+                            #'string-lessp)))
           (kill-buffer dired-buffer-name)
           ;; Rebind default-directory because after killing a buffer, we
           ;; could be in any buffer and default-directory is set to that
@@ -789,7 +789,7 @@ Meant to be added to `helm-cleanup-hook', from which it removes
                                              (projectile-current-project-dirs))))
                                  (helm-projectile--files-display-real dirs (projectile-project-root)))))))
    (fuzzy-match :initform (symbol-value 'helm-projectile-fuzzy-match))
-   (action-transformer :initform 'helm-find-files-action-transformer)
+   (action-transformer :initform #'helm-find-files-action-transformer)
    (keymap :initform (let ((map (make-sparse-keymap)))
                        (set-keymap-parent map helm-map)
                        (helm-projectile-define-key map
@@ -868,8 +868,8 @@ Meant to be added to `helm-cleanup-hook', from which it removes
                          (helm-set-local-variable 'helm-buffer-max-len-mode (cdr result))))))
    (candidates :initform 'helm-projectile-buffers-list-cache)
    (matchplugin :initform nil)
-   (match :initform 'helm-buffers-match-function)
-   (persistent-action :initform 'helm-buffers-list-persistent-action)
+   (match :initform #'helm-buffers-match-function)
+   (persistent-action :initform #'helm-buffers-list-persistent-action)
    (keymap :initform 'helm-buffer-map)
    (volatile :initform t)
    (persistent-help
@@ -1159,7 +1159,7 @@ ACTIONS and PROMPT with other selected files."
                                        (helm-projectile--files-display-real files project-root)
                                      (helm-projectile--files-display-real project-files project-root))
                        :fuzzy-match helm-projectile-fuzzy-match
-                       :action-transformer 'helm-find-files-action-transformer
+                       :action-transformer #'helm-find-files-action-transformer
                        :keymap helm-projectile-find-file-map
                        :help-message helm-ff-help-message
                        :mode-line helm-read-file-name-mode-line-string
@@ -1338,7 +1338,7 @@ types (for \"ack\") to include in search."
                                       (helm-projectile--ignored-files)
                                     helm-grep-ignored-files))
          (helm-grep-ignored-directories (if (helm-projectile--projectile-ignore-strategy)
-                                            (mapcar 'directory-file-name
+                                            (mapcar #'directory-file-name
                                                     (helm-projectile--ignored-directories))
                                           helm-grep-ignored-directories))
          (helm-grep-default-command
@@ -1367,8 +1367,8 @@ types (for \"ack\") to include in search."
                                            "Helm Projectile Ack"
                                          "Helm Projectile Grep")))
                              (concat name " " "(C-c ? Help)")))
-            :candidates-process 'helm-grep-collect-candidates
-            :filter-one-by-one 'helm-grep-filter-one-by-one
+            :candidates-process #'helm-grep-collect-candidates
+            :filter-one-by-one #'helm-grep-filter-one-by-one
             :candidate-number-limit 9999
             :nohighlight t
             ;; We need to specify keymap here and as :keymap arg [1]
@@ -1376,7 +1376,7 @@ types (for \"ack\") to include in search."
             :keymap helm-grep-map
             :history 'helm-grep-history
             :action (apply #'helm-make-actions helm-projectile-grep-or-ack-actions)
-            :persistent-action 'helm-grep-persistent-action
+            :persistent-action #'helm-grep-persistent-action
             :persistent-help "Jump to line (`C-u' Record in mark ring)"
             :requires-pattern 2)))
     (helm
@@ -1418,7 +1418,7 @@ prefix argument then ask for FILES."
          (include (if (equal current-prefix-arg '(4))
                       (read-string (projectile-prepend-project-name "Grep in: "))
                     files)))
-    (funcall 'run-with-timer 0.01 nil
+    (run-with-timer 0.01 nil
              #'helm-projectile-grep-or-ack project-root nil nil nil include)))
 
 (defun helm-projectile--wildcard-to-ack-match (wildcard)
@@ -1448,7 +1448,7 @@ a prefix argument, then ask for TYPES."
   (let* ((project-root (or dir (projectile-project-root) (user-error "You're not in a project")))
          (ignored (when (helm-projectile--projectile-ignore-strategy)
                     (mapconcat
-                     'identity
+                     #'identity
                      (cl-union (mapcar (lambda (path)
                                          (concat "--ignore-dir="
                                                  (file-name-nondirectory
@@ -1474,7 +1474,7 @@ a prefix argument, then ask for TYPES."
                             (helm-grep-default-command helm-ack-grep-executable))
                         (helm-grep-read-ack-type))
                     types)))
-    (funcall 'run-with-timer 0.01 nil
+    (run-with-timer 0.01 nil
              #'helm-projectile-grep-or-ack project-root t ignored helm-ack-grep-executable include)))
 
 (defvar helm-projectile--ag-input nil
