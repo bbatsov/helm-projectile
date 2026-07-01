@@ -68,8 +68,6 @@
   :group 'helm
   :link `(url-link :tag "GitHub" "https://github.com/bbatsov/helm-projectile"))
 
-(defvar helm-projectile-current-project-root)
-
 (defcustom helm-projectile-truncate-lines nil
   "Truncate lines in helm projectile commands when non--nil.
 
@@ -1307,7 +1305,7 @@ When set to `search-tool', the above does not happen."
     "Find file other window" helm-grep-other-window)
   "Available actions for `helm-projectile-grep-or-ack'.
 The contents of this list are passed as the arguments to `helm-make-actions'."
-  :type 'symbol
+  :type '(repeat sexp)
   :group 'helm-projectile)
 
 (defcustom helm-projectile-set-input-automatically t
