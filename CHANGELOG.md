@@ -7,6 +7,10 @@
 * Fix a crash in the "switch project and search" ag/rg actions when the selected path contained a `%`: the path was handed to `error` as a format string.
 * Report a failed `helm-rg` auto-install instead of silently swallowing the error.
 
+### Changes
+
+* Signal normal situations (not in a project, no other file found, `ack` missing, etc.) with `user-error` instead of `error`, so they no longer drop into the debugger when `debug-on-error` is enabled.
+
 ## 1.5.0 (2026-06-30)
 
 ### New features
