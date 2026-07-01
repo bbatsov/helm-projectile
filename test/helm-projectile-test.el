@@ -94,6 +94,19 @@
     (expect (helm-projectile--switch-project-and-ag-action "/no/such/dir%s")
             :to-throw 'user-error)))
 
+(describe "user-facing error conditions"
+  ;; Normal situations (no project, no other file, ...) should signal
+  ;; `user-error', not `error', so they don't trip the debugger when a user
+  ;; has `debug-on-error' enabled.
+  (it "signals user-error when running ag outside a project"
+    (spy-on 'projectile-project-p :and-return-value nil)
+    (expect (helm-projectile-ag) :to-throw 'user-error))
+
+  (it "signals user-error when there is no other file"
+    (spy-on 'projectile-project-root :and-return-value "/proj/")
+    (spy-on 'projectile-get-other-files :and-return-value nil)
+    (expect (helm-projectile-find-other-file) :to-throw 'user-error)))
+
 (describe "removed features"
   ;; Mirrors Projectile dropping its single-key commander and the
   ;; browse-dirty-projects command; helm-projectile must not resurrect them.

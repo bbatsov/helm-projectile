@@ -485,7 +485,7 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
                                                           files)
                                                 (list candidate))))
               (rename-buffer dired-buffer-name))))
-      (error "You're not in a Dired buffer to add"))))
+      (user-error "You're not in a Dired buffer to add"))))
 
 (defun helm-projectile-dired-files-delete-action (candidate)
   "Delete selected entries from a Dired buffer.
@@ -958,7 +958,7 @@ With a prefix ARG invalidates the cache first."
      (if (projectile-project-p)
          (projectile-maybe-invalidate-cache arg)
        (unless ,not-require-root
-         (error "You're not in a project")))
+         (user-error "You're not in a project")))
      (let ((helm-ff-transformer-show-only-basename nil)
            ;; for consistency, we should just let Projectile take care of ignored files
            (helm-boring-file-regexp-list nil))
@@ -1221,7 +1221,7 @@ variable `projectile-other-file-alist'."
                     :buffer "*helm projectile*"
                     :truncate-lines helm-projectile-truncate-lines
                     :prompt (projectile-prepend-project-name prompt)))))
-      (error "No other file found"))))
+      (user-error "No other file found"))))
 
 ;;;###autoload
 (defun helm-projectile-find-other-file (&optional flex-matching)
@@ -1407,7 +1407,7 @@ DIR is the project root, if not set then current project root is used.
 FILES is a list of file patterns to search in.  When called with a
 prefix argument then ask for FILES."
   (interactive)
-  (let* ((project-root (or dir (projectile-project-root) (error "You're not in a project")))
+  (let* ((project-root (or dir (projectile-project-root) (user-error "You're not in a project")))
          (include (if (equal current-prefix-arg '(4))
                       (read-string (projectile-prepend-project-name "Grep in: "))
                     files)))
@@ -1438,7 +1438,7 @@ DIR directory where to search, if not set then current project root is
 used.  TYPES is a list of types to include in search.  When called with
 a prefix argument, then ask for TYPES."
   (interactive)
-  (let* ((project-root (or dir (projectile-project-root) (error "You're not in a project")))
+  (let* ((project-root (or dir (projectile-project-root) (user-error "You're not in a project")))
          (ignored (when (helm-projectile--projectile-ignore-strategy)
                     (mapconcat
                      'identity
@@ -1461,7 +1461,7 @@ a prefix argument, then ask for TYPES."
          (helm-ack-grep-executable (cond
                                     ((executable-find "ack") "ack")
                                     ((executable-find "ack-grep") "ack-grep")
-                                    (t (error "Neither 'ack' nor 'ack-grep' is available"))))
+                                    (t (user-error "Neither 'ack' nor 'ack-grep' is available"))))
          (include (if (equal current-prefix-arg '(4))
                       (let ((helm-grep-default-recurse-command helm-ack-grep-executable)
                             (helm-grep-default-command helm-ack-grep-executable))
@@ -1546,7 +1546,7 @@ searcher used is determined by the value of `helm-grep-ag-command'."
       (helm-projectile--ag-1 (projectile-project-root)
                              (helm-projectile--ag--region-selection)
                              options)
-    (error "You're not in a project")))
+    (user-error "You're not in a project")))
 
 (defun helm-projectile--switch-project-and-ag-action (directory)
   "Switch to a project containing DIRECTORY then run ag in the DIRECTORY."
@@ -1604,7 +1604,7 @@ Otherwise ask to install package`helm-rg' and execute BODY."
                 ,@body)
             (error (user-error "`helm-rg' is not available.  Is MELPA in your `package-archives'?"))))
          (t
-          (error "Cannot execute search with ripgrep (rg)"))))
+          (user-error "Cannot execute search with ripgrep (rg)"))))
 
 (defun helm-projectile--rg-1 (directory input)
   "Call `helm-rg' with DIRECTORY.
@@ -1637,7 +1637,7 @@ package `helm-rg'."
     (if (projectile-project-p)
         (helm-projectile--rg-1 (projectile-project-root)
                                (helm-projectile-rg--region-selection))
-      (error "You're not in a project"))))
+      (user-error "You're not in a project"))))
 
 (defun helm-projectile--switch-project-and-rg-action (directory)
   "Switch to a project containing DIRECTORY then run rg in the DIRECTORY.
