@@ -953,10 +953,11 @@ project root.
 TRUNCATE-LINES-VAR is the symbol used dictate truncation of lines.
 Defaults is `helm-projectile-truncate-lines'."
   (unless truncate-lines-var (setq truncate-lines-var 'helm-projectile-truncate-lines))
+  ;; Derive the docstring from PROMPT so each command documents what it
+  ;; actually does, rather than every command claiming to find files.
   `(defun ,(intern (concat "helm-projectile-" command)) (&optional arg)
-     "Use projectile with Helm for finding files in project
-
-With a prefix ARG invalidates the cache first."
+     ,(format "%s (Helm-Projectile).\n\nWith a prefix ARG invalidate the cache first."
+              (string-trim-right prompt "[: ]+"))
      (interactive "P")
      (if (projectile-project-p)
          (projectile-maybe-invalidate-cache arg)
