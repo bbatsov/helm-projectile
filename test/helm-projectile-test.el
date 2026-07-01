@@ -94,7 +94,53 @@
     (spy-on 'projectile-project-root :and-return-value "/proj/")
     (spy-on 'projectile-project-vcs :and-return-value 'none)
     (spy-on 'projectile-get-ext-command :and-return-value nil)
-    (expect (helm-projectile--files-stream-command) :to-throw 'user-error)))
+    (expect (helm-projectile--files-stream-command) :to-throw 'user-error))
+
+  (it "defines an other-window and other-frame streaming source"
+    (expect (boundp 'helm-source-projectile-files-streaming-other-window) :to-be-truthy)
+    (expect (boundp 'helm-source-projectile-files-streaming-other-frame) :to-be-truthy))
+
+  (it "promotes the matching default action in each streaming variant"
+    (cl-flet ((first-action (src) (cdar (helm-get-attr 'action src))))
+      (expect (first-action helm-source-projectile-files-streaming-other-window)
+              :to-be 'helm-find-files-other-window)
+      (expect (first-action helm-source-projectile-files-streaming-other-frame)
+              :to-be 'find-file-other-frame))))
+
+(describe "helm-projectile-find-file-strategy"
+  (before-each
+    (spy-on 'helm)
+    (spy-on 'projectile-project-p :and-return-value t)
+    (spy-on 'projectile-maybe-invalidate-cache)
+    (spy-on 'projectile-project-name :and-return-value "demo")
+    (spy-on 'projectile-prepend-project-name :and-call-fake #'identity))
+
+  (defun helm-projectile-test--sources ()
+    "Return the `:sources' passed to the most recent stubbed `helm' call."
+    (plist-get (spy-calls-args-for 'helm 0) :sources))
+
+  (it "defaults to sync"
+    (expect helm-projectile-find-file-strategy :to-be 'sync))
+
+  (it "picks the sync sources for each variant by default"
+    (helm-projectile-find-file)
+    (expect (helm-projectile-test--sources)
+            :to-equal '(helm-source-projectile-dired-files-list
+                        helm-source-projectile-files-list)))
+
+  (it "picks the streaming source for each variant when set to streaming"
+    (let ((helm-projectile-find-file-strategy 'streaming))
+      (helm-projectile-find-file)
+      (expect (helm-projectile-test--sources)
+              :to-be 'helm-source-projectile-files-streaming)
+      (spy-calls-reset 'helm)
+      (helm-projectile-find-file-other-window)
+      (expect (helm-projectile-test--sources)
+              :to-be 'helm-source-projectile-files-streaming-other-window)
+      (spy-calls-reset 'helm)
+      (helm-projectile-find-file-other-frame)
+      (expect (helm-projectile-test--sources)
+              :to-be 'helm-source-projectile-files-streaming-other-frame))))
 
 (describe "helm-projectile--switch-project-and-ag-action"
   ;; A directory name can legally contain a `%'; the error path used to feed

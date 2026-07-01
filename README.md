@@ -117,6 +117,23 @@ Magit or Eshell. `helm-projectile-find-file` reuses actions in
 files. Another reason is that in a large source tree, helm-projectile
 could be slow because it has to open all available sources.
 
+On a large or remote project the up-front indexing that
+`helm-projectile-find-file` does can make the picker slow to appear. If
+that bothers you, set `helm-projectile-find-file-strategy` to
+`streaming` and it (along with its other-window and other-frame
+variants) will stream candidates as Projectile's indexing command lists
+them, instead of waiting for the whole project to be indexed:
+
+```el
+(setq helm-projectile-find-file-strategy 'streaming)
+```
+
+The default is `sync`, the original behavior. Note that for Git projects
+the streaming strategy lists exactly what the indexing command prints,
+so it doesn't fold in submodule files or drop deleted-but-unstaged ones.
+The `helm-projectile-find-file-streaming` command streams regardless of
+this setting.
+
 If you want to use these commands, you have to activate it to replace
 the normal Projectile commands:
 

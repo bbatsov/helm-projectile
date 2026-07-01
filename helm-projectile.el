@@ -1015,21 +1015,61 @@ Defaults is `helm-projectile-truncate-lines'."
                              'helm-projectile-projects-other-frame-source)
                          "Switch to project: " t)
 
+(defcustom helm-projectile-find-file-strategy 'sync
+  "How `helm-projectile-find-file' lists a project's files.
+
+`sync' (the default) builds the whole file index up front, then hands it
+to Helm.  It is battle-tested and pulls in the extra sources, like the
+files of the current Dired buffer, plus the \"type a brand new file
+name\" behavior.
+
+`streaming' streams candidates as Projectile's own indexing command
+prints them, so the picker appears instantly on large or remote projects
+instead of blocking until indexing finishes.  It lists exactly what the
+indexing command prints, so - like `helm-projectile-find-file-streaming'
+\(which see) - on Git projects it doesn't fold in submodule files or drop
+deleted-but-unstaged ones.
+
+This governs `helm-projectile-find-file' and its other-window and
+other-frame variants.  The dwim commands and
+`helm-projectile-find-file-in-known-projects' always build the full file
+list, because they need it (to match the file at point, or to span every
+known project)."
+  :type '(choice (const :tag "Build the full index first" sync)
+                 (const :tag "Stream candidates as they are indexed" streaming))
+  :group 'helm-projectile)
+
+(defmacro helm-projectile--file-sources (streaming &rest sync)
+  "Choose file sources per `helm-projectile-find-file-strategy'.
+Return the STREAMING source when the strategy is `streaming', otherwise
+the list of SYNC sources.  Expanded inside a `helm-projectile-command'
+body, so the choice is made on each call and toggling the option takes
+effect immediately."
+  `(if (eq helm-projectile-find-file-strategy 'streaming)
+       ,streaming
+     (list ,@sync)))
+
 ;;;###autoload(autoload 'helm-projectile-find-file "helm-projectile" nil t)
 (helm-projectile-command "find-file"
-                         '(helm-source-projectile-dired-files-list
-                           helm-source-projectile-files-list)
+                         (helm-projectile--file-sources
+                          'helm-source-projectile-files-streaming
+                          'helm-source-projectile-dired-files-list
+                          'helm-source-projectile-files-list)
                          "Find file: ")
 ;;;###autoload(autoload 'helm-projectile-find-file-other-window "helm-projectile" nil t)
 (helm-projectile-command "find-file-other-window"
-                         '(helm-source-projectile-dired-files-other-window-list
-                           helm-source-projectile-files-other-window-list)
+                         (helm-projectile--file-sources
+                          'helm-source-projectile-files-streaming-other-window
+                          'helm-source-projectile-dired-files-other-window-list
+                          'helm-source-projectile-files-other-window-list)
                          "Find file (other window): ")
 
 ;;;###autoload(autoload 'helm-projectile-find-file-other-frame "helm-projectile" nil t)
 (helm-projectile-command "find-file-other-frame"
-                         '(helm-source-projectile-dired-files-other-frame-list
-                           helm-source-projectile-files-other-frame-list)
+                         (helm-projectile--file-sources
+                          'helm-source-projectile-files-streaming-other-frame
+                          'helm-source-projectile-dired-files-other-frame-list
+                          'helm-source-projectile-files-other-frame-list)
                          "Find file (other frame): ")
 
 ;;;###autoload(autoload 'helm-projectile-find-file-in-known-projects "helm-projectile" nil t)
@@ -1113,7 +1153,10 @@ because Helm's process sources split their input on newlines.  Signals a
     (start-process-shell-command
      "helm-projectile-files" nil (helm-projectile--files-stream-command))))
 
-(defvar helm-source-projectile-files-streaming
+(defun helm-projectile--make-streaming-source (action)
+  "Build a Helm async source that streams the project's files.
+ACTION is the Helm action list attached to the source (which see
+`helm-projectile-file-actions')."
   (helm-build-async-source "Projectile files (streaming)"
     :candidates-process #'helm-projectile--files-process
     ;; Candidates arrive as project-relative paths; strip a leading "./"
@@ -1127,10 +1170,13 @@ because Helm's process sources split their input on newlines.  Signals a
     :keymap helm-projectile-find-file-map
     :help-message 'helm-ff-help-message
     :mode-line helm-read-file-name-mode-line-string
-    :action helm-projectile-file-actions
+    :action action
     :persistent-action #'helm-projectile-file-persistent-action
     :persistent-help "Preview file"
-    :candidate-number-limit 9999)
+    :candidate-number-limit 9999))
+
+(defvar helm-source-projectile-files-streaming
+  (helm-projectile--make-streaming-source helm-projectile-file-actions)
   "Helm async source that streams the project's files.
 Candidates are produced by Projectile's own indexing command and appear as
 they are listed, instead of blocking until the whole project is indexed.
@@ -1138,6 +1184,20 @@ they are listed, instead of blocking until the whole project is indexed.
 Note: for Git projects this lists exactly what the indexing command prints,
 which (unlike `helm-projectile-find-file') does not fold in submodule files
 or drop deleted-but-unstaged files.")
+
+(defvar helm-source-projectile-files-streaming-other-window
+  (helm-projectile--make-streaming-source
+   (helm-projectile-hack-actions
+    helm-projectile-file-actions
+    '(helm-find-files-other-window . :make-first)))
+  "Like `helm-source-projectile-files-streaming', but opening in another window.")
+
+(defvar helm-source-projectile-files-streaming-other-frame
+  (helm-projectile--make-streaming-source
+   (helm-projectile-hack-actions
+    helm-projectile-file-actions
+    '(find-file-other-frame . :make-first)))
+  "Like `helm-source-projectile-files-streaming', but opening in another frame.")
 
 ;;;###autoload(autoload 'helm-projectile-find-file-streaming "helm-projectile" nil t)
 (helm-projectile-command "find-file-streaming"
