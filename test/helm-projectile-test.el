@@ -105,6 +105,17 @@
     (expect (helm-projectile--switch-project-and-ag-action "/no/such/dir%s")
             :to-throw 'user-error)))
 
+(describe "helm-projectile-command generated docstrings"
+  ;; Every command used to inherit the same "finding files in project"
+  ;; docstring; each should now describe what it actually does.
+  (it "derives an accurate docstring from each command's prompt"
+    (expect (documentation 'helm-projectile-switch-to-buffer)
+            :to-match "\\`Switch to buffer")
+    (expect (documentation 'helm-projectile-recentf)
+            :to-match "\\`Recently visited file")
+    (expect (documentation 'helm-projectile-find-file)
+            :not :to-match "finding files in project")))
+
 (describe "helm-projectile file source transformer"
   ;; The transformer runs on every keystroke, so it must not do the
   ;; `.dir-locals.el' filesystem walk that the candidates function needs.
