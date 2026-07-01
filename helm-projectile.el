@@ -289,7 +289,10 @@ When `projectile-switch-project-action' is `projectile-find-file' a
   ((candidates :initform (lambda () (with-helm-current-buffer
                                       (mapcar #'copy-sequence
                                               (projectile-known-projects)))))
-   (fuzzy-match :initform 'helm-projectile-fuzzy-match)
+   ;; Read the variable's *value* here.  A bare or quoted symbol initform
+   ;; would store the symbol itself, which Helm reads as a constant non-nil,
+   ;; forcing fuzzy matching on regardless of `helm-projectile-fuzzy-match'.
+   (fuzzy-match :initform (symbol-value 'helm-projectile-fuzzy-match))
    (keymap :initform 'helm-projectile-projects-map)
    (mode-line :initform 'helm-read-file-name-mode-line-string)
    (action :initform 'helm-source-projectile-projects-actions))
@@ -624,7 +627,7 @@ Meant to be added to `helm-cleanup-hook', from which it removes
                                     (list (expand-file-name helm-pattern)
                                           (expand-file-name helm-pattern root))
                                     files)))))))
-   (fuzzy-match :initform 'helm-projectile-fuzzy-match)
+   (fuzzy-match :initform (symbol-value 'helm-projectile-fuzzy-match))
    (keymap :initform 'helm-projectile-find-file-map)
    (help-message :initform 'helm-ff-help-message)
    (mode-line :initform 'helm-read-file-name-mode-line-string)
@@ -782,7 +785,7 @@ Meant to be added to `helm-cleanup-hook', from which it removes
                                                (append '("./") (projectile-current-project-dirs))
                                              (projectile-current-project-dirs))))
                                  (helm-projectile--files-display-real dirs (projectile-project-root)))))))
-   (fuzzy-match :initform 'helm-projectile-fuzzy-match)
+   (fuzzy-match :initform (symbol-value 'helm-projectile-fuzzy-match))
    (action-transformer :initform 'helm-find-files-action-transformer)
    (keymap :initform (let ((map (make-sparse-keymap)))
                        (set-keymap-parent map helm-map)
