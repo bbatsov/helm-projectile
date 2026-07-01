@@ -11,6 +11,7 @@
 ### Changes
 
 * Signal normal situations (not in a project, no other file found, `ack` missing, etc.) with `user-error` instead of `error`, so they no longer drop into the debugger when `debug-on-error` is enabled.
+* Fix the `:type` of `helm-projectile-grep-or-ack-actions`, which was declared as `symbol` but holds a list, so Customize could not edit it.
 
 ## 1.5.0 (2026-06-30)
 
