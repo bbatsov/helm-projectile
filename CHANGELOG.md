@@ -2,6 +2,10 @@
 
 ## master (unreleased)
 
+### New features
+
+* Add `helm-projectile-find-file-strategy`. Set it to `streaming` to make `helm-projectile-find-file` (and its other-window/other-frame variants) stream candidates as the project is indexed instead of blocking on the full index, without having to switch to the separate `helm-projectile-find-file-streaming` command. Defaults to `sync` (the original behavior).
+
 ### Bugs fixed
 
 * Fix a crash in the "switch project and search" ag/rg actions when the selected path contained a `%`: the path was handed to `error` as a format string.
