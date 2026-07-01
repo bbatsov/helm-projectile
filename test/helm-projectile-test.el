@@ -94,6 +94,20 @@
     (expect (helm-projectile--switch-project-and-ag-action "/no/such/dir%s")
             :to-throw 'user-error)))
 
+(describe "helm-projectile file source transformer"
+  ;; The transformer runs on every keystroke, so it must not do the
+  ;; `.dir-locals.el' filesystem walk that the candidates function needs.
+  (it "does not hack dir-local variables on every update"
+    (spy-on 'hack-dir-local-variables-non-file-buffer)
+    (spy-on 'projectile-project-root :and-return-value "/proj/")
+    (let* ((src (helm-source-projectile-file :name "t"))
+           (transformer (slot-value src 'filtered-candidate-transformer))
+           (helm-pattern ""))
+      (expect (funcall transformer '(("a.el" . "/proj/a.el")) src)
+              :to-equal '(("a.el" . "/proj/a.el")))
+      (expect 'hack-dir-local-variables-non-file-buffer
+              :not :to-have-been-called))))
+
 (describe "helm-projectile-fuzzy-match"
   ;; The EIEIO file/dir/project sources used to store the *symbol*
   ;; `helm-projectile-fuzzy-match' in their `fuzzy-match' slot, which Helm

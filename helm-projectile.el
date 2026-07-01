@@ -608,23 +608,25 @@ Meant to be added to `helm-cleanup-hook', from which it removes
                     (helm-projectile--files-display-real (projectile-current-project-files)
                                                          (projectile-project-root))))))
    (filtered-candidate-transformer
+    ;; Runs on every input change, so keep it cheap: unlike the candidates
+    ;; function it doesn't list project files, so it needs neither a temp
+    ;; buffer nor a `hack-dir-local-variables-non-file-buffer' filesystem walk
+    ;; (which would search for `.dir-locals.el' up the tree on each keystroke).
     :initform (lambda (files _source)
-                (with-temp-buffer
-                  (hack-dir-local-variables-non-file-buffer)
-                  (let* ((root (projectile-project-root))
-                         (file-at-root (file-relative-name (expand-file-name helm-pattern root))))
-                    (if (or (string-empty-p helm-pattern)
-                            (assoc helm-pattern files))
-                        files
-                      (if (equal helm-pattern file-at-root)
-                          (cl-acons (helm-ff-prefix-filename helm-pattern nil t)
-                                    (expand-file-name helm-pattern)
-                                    files)
-                        (cl-pairlis (list (helm-ff-prefix-filename helm-pattern nil t)
-                                          (helm-ff-prefix-filename file-at-root nil t))
-                                    (list (expand-file-name helm-pattern)
-                                          (expand-file-name helm-pattern root))
-                                    files)))))))
+                (let* ((root (projectile-project-root))
+                       (file-at-root (file-relative-name (expand-file-name helm-pattern root))))
+                  (if (or (string-empty-p helm-pattern)
+                          (assoc helm-pattern files))
+                      files
+                    (if (equal helm-pattern file-at-root)
+                        (cl-acons (helm-ff-prefix-filename helm-pattern nil t)
+                                  (expand-file-name helm-pattern)
+                                  files)
+                      (cl-pairlis (list (helm-ff-prefix-filename helm-pattern nil t)
+                                        (helm-ff-prefix-filename file-at-root nil t))
+                                  (list (expand-file-name helm-pattern)
+                                        (expand-file-name helm-pattern root))
+                                  files))))))
    (fuzzy-match :initform (symbol-value 'helm-projectile-fuzzy-match))
    (keymap :initform 'helm-projectile-find-file-map)
    (help-message :initform 'helm-ff-help-message)
