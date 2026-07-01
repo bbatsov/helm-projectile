@@ -2,6 +2,8 @@
 
 ## master (unreleased)
 
+## 1.6.0 (2026-07-01)
+
 ### New features
 
 * Add `helm-projectile-find-file-strategy`. Set it to `streaming` to make `helm-projectile-find-file` (and its other-window/other-frame variants) stream candidates as the project is indexed instead of blocking on the full index, without having to switch to the separate `helm-projectile-find-file-streaming` command. Defaults to `sync` (the original behavior).
