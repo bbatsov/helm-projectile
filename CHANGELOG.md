@@ -2,6 +2,11 @@
 
 ## master (unreleased)
 
+### Bugs fixed
+
+* Fix a crash in the "switch project and search" ag/rg actions when the selected path contained a `%`: the path was handed to `error` as a format string.
+* Report a failed `helm-rg` auto-install instead of silently swallowing the error.
+
 ## 1.5.0 (2026-06-30)
 
 ### New features

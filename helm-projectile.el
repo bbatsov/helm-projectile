@@ -1557,9 +1557,9 @@ searcher used is determined by the value of `helm-grep-ag-command'."
               (lambda ()
                 (helm-projectile--ag-1 (file-truename directory) input))))
         (projectile-switch-project-by-name (projectile-project-root directory)))
-    (error (if (file-directory-p directory)
-               (format "Directory %s is not in any project!" directory)
-             (format "Not a directory %s" directory)))))
+    (user-error "%s" (if (file-directory-p directory)
+                         (format "Directory %s is not in any project!" directory)
+                       (format "Not a directory %s" directory)))))
 
 ;; Declare/define these to satisfy the byte compiler
 (defvar helm-rg-prepend-file-name-line-at-top-of-matches)
@@ -1602,7 +1602,7 @@ Otherwise ask to install package`helm-rg' and execute BODY."
                 (package-refresh-contents)
                 (package-install 'helm-rg)
                 ,@body)
-            (error "`helm-rg' is not available.  Is MELPA in your `package-archives'?")))
+            (error (user-error "`helm-rg' is not available.  Is MELPA in your `package-archives'?"))))
          (t
           (error "Cannot execute search with ripgrep (rg)"))))
 
@@ -1656,9 +1656,9 @@ package `helm-rg'."
                 (lambda ()
                   (helm-projectile--rg-1 (file-truename directory) input))))
           (projectile-switch-project-by-name (projectile-project-root directory)))
-      (error (if (file-directory-p directory)
-                 (format "Directory %s is not in any project!" directory)
-               (format "Not a directory %s" directory))))))
+      (user-error "%s" (if (file-directory-p directory)
+                           (format "Directory %s is not in any project!" directory)
+                         (format "Not a directory %s" directory))))))
 
 ;;;###autoload
 (defun helm-projectile-toggle (toggle)
