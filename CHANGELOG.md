@@ -14,6 +14,10 @@
 * Signal normal situations (not in a project, no other file found, `ack` missing, etc.) with `user-error` instead of `error`, so they no longer drop into the debugger when `debug-on-error` is enabled.
 * Fix the `:type` of `helm-projectile-grep-or-ack-actions`, which was declared as `symbol` but holds a list, so Customize could not edit it.
 
+### Internal
+
+* Drive `helm-projectile-toggle`'s command remaps from a single table (`helm-projectile--command-remaps`) instead of two hand-maintained copies of ~20 `define-key` calls.
+
 ## 1.5.0 (2026-06-30)
 
 ### New features

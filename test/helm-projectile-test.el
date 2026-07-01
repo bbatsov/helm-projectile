@@ -49,13 +49,24 @@
     (expect (lookup-key projectile-mode-map [remap projectile-switch-to-buffer])
             :to-be 'helm-projectile-switch-to-buffer)
     (expect (lookup-key projectile-mode-map [remap projectile-grep])
-            :to-be 'helm-projectile-grep))
+            :to-be 'helm-projectile-grep)
+    ;; `ripgrep' is the one remap whose Helm command doesn't share the
+    ;; `helm-projectile-<name>' shape, so guard it explicitly.
+    (expect (lookup-key projectile-mode-map [remap projectile-ripgrep])
+            :to-be 'helm-projectile-rg))
+
+  (it "installs a remap for every command in the table"
+    (helm-projectile-toggle 1)
+    (dolist (entry helm-projectile--command-remaps)
+      (expect (lookup-key projectile-mode-map (vector 'remap (car entry)))
+              :to-be (cdr entry))))
 
   (it "disables without error and clears the remaps"
     (helm-projectile-toggle 1)
     (expect (helm-projectile-toggle 0) :not :to-throw)
-    (expect (lookup-key projectile-mode-map [remap projectile-find-file])
-            :to-be nil)))
+    (dolist (entry helm-projectile--command-remaps)
+      (expect (lookup-key projectile-mode-map (vector 'remap (car entry)))
+              :to-be nil))))
 
 (describe "helm-projectile--files-display-real"
   (it "maps each file to its absolute path under the project root"
