@@ -217,11 +217,7 @@ It is there because Helm requires it."
       projects
       (if (not (y-or-n-p (format "Remove *%s projects(s)? " len)))
           (message "(No removal performed)")
-        (progn
-          (mapc (lambda (p)
-                  (setq projectile-known-projects (delete p projectile-known-projects)))
-                projects)
-          (projectile-save-known-projects))
+        (mapc #'projectile-remove-known-project projects)
         (message "%s projects(s) removed" len)))))
 
 (defun helm-projectile-switch-project-by-name (project)
@@ -413,9 +409,12 @@ See also `helm-etags-select'."
                     (buffer-name))))
            (buffer-list))))
 
-(defvar helm-projectile-virtual-dired-remote-enable nil
-  "Enable virtual Dired manager on remote host.
-Disabled by default.")
+(defcustom helm-projectile-virtual-dired-remote-enable nil
+  "When non-nil, enable the virtual Dired manager on remote hosts.
+It is disabled by default because building a Dired buffer from a
+project's files over TRAMP can be slow."
+  :type 'boolean
+  :group 'helm-projectile)
 
 (defun helm-projectile-dired-files-new-action (candidate)
   "Create a Dired buffer from chosen files.
@@ -1747,9 +1746,8 @@ If invoked outside of a project, displays a list of known projects to jump."
                                                        "Switch to project: "))))))
 
 ;;;###autoload
-(eval-after-load 'projectile
-  '(progn
-     (define-key projectile-command-map (kbd "h") #'helm-projectile)))
+(with-eval-after-load 'projectile
+  (define-key projectile-command-map (kbd "h") #'helm-projectile))
 
 (provide 'helm-projectile)
 
