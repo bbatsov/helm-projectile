@@ -416,13 +416,23 @@ project's files over TRAMP can be slow."
   :type 'boolean
   :group 'helm-projectile)
 
+(defmacro helm-projectile--with-virtual-dired (&rest body)
+  "Evaluate BODY unless the virtual Dired manager is disabled here.
+When the project root is remote and
+`helm-projectile-virtual-dired-remote-enable' is nil, show a message
+pointing at that option instead of evaluating BODY."
+  (declare (indent 0) (debug t))
+  `(if (and (file-remote-p (projectile-project-root))
+            (not helm-projectile-virtual-dired-remote-enable))
+       (message "Virtual Dired manager is disabled in remote host. Enable with %s."
+                (propertize "helm-projectile-virtual-dired-remote-enable"
+                            'face 'font-lock-keyword-face))
+     ,@body))
+
 (defun helm-projectile-dired-files-new-action (candidate)
   "Create a Dired buffer from chosen files.
 CANDIDATE is the selected file, but choose the marked files if available."
-  (if (and (file-remote-p (projectile-project-root))
-           (not helm-projectile-virtual-dired-remote-enable))
-      (message "Virtual Dired manager is disabled in remote host. Enable with %s."
-               (propertize "helm-projectile-virtual-dired-remote-enable" 'face 'font-lock-keyword-face))
+  (helm-projectile--with-virtual-dired
     (let ((files (cl-remove-if-not
                   (lambda (f)
                     (not (string= f "")))
@@ -449,10 +459,7 @@ CANDIDATE is the selected file, but choose the marked files if available."
 (defun helm-projectile-dired-files-add-action (candidate)
   "Add files to a Dired buffer.
 CANDIDATE is the selected file.  Used when no file is explicitly marked."
-  (if (and (file-remote-p (projectile-project-root))
-           (not helm-projectile-virtual-dired-remote-enable))
-      (message "Virtual Dired manager is disabled in remote host. Enable with %s."
-               (propertize "helm-projectile-virtual-dired-remote-enable" 'face 'font-lock-keyword-face))
+  (helm-projectile--with-virtual-dired
     (if (eq (with-helm-current-buffer major-mode) 'dired-mode)
         (let* ((marked-files (helm-marked-candidates :with-wildcard t))
                (helm--reading-passwd-or-string t)
@@ -490,10 +497,7 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
 (defun helm-projectile-dired-files-delete-action (candidate)
   "Delete selected entries from a Dired buffer.
 CANDIDATE is the selected file.  Used when no file is explicitly marked."
-  (if (and (file-remote-p (projectile-project-root))
-           (not helm-projectile-virtual-dired-remote-enable))
-      (message "Virtual Dired manager is disabled in remote host. Enable with %s."
-               (propertize "helm-projectile-virtual-dired-remote-enable" 'face 'font-lock-keyword-face))
+  (helm-projectile--with-virtual-dired
     (let* ((helm--reading-passwd-or-string t)
            (root (projectile-project-root))
            (dired-buffer-name (with-helm-current-buffer (buffer-name)))

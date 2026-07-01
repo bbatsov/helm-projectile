@@ -20,6 +20,7 @@
 ### Internal
 
 * Drive `helm-projectile-toggle`'s command remaps from a single table (`helm-projectile--command-remaps`) instead of two hand-maintained copies of ~20 `define-key` calls.
+* Extract the remote virtual-Dired guard duplicated across the three Dired file actions into a `helm-projectile--with-virtual-dired` macro.
 
 ## 1.5.0 (2026-06-30)
 
