@@ -85,6 +85,15 @@
     (spy-on 'projectile-get-ext-command :and-return-value nil)
     (expect (helm-projectile--files-stream-command) :to-throw 'user-error)))
 
+(describe "helm-projectile--switch-project-and-ag-action"
+  ;; A directory name can legally contain a `%'; the error path used to feed
+  ;; it straight to `error' as a format string, which crashed with "Not enough
+  ;; arguments for format string" instead of reporting the real problem.
+  (it "reports a non-directory argument containing `%' without a format crash"
+    (spy-on 'file-directory-p :and-return-value nil)
+    (expect (helm-projectile--switch-project-and-ag-action "/no/such/dir%s")
+            :to-throw 'user-error)))
+
 (describe "removed features"
   ;; Mirrors Projectile dropping its single-key commander and the
   ;; browse-dirty-projects command; helm-projectile must not resurrect them.
