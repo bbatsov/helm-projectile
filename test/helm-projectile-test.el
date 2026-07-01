@@ -105,6 +105,27 @@
     (expect (helm-projectile--switch-project-and-ag-action "/no/such/dir%s")
             :to-throw 'user-error)))
 
+(describe "helm-projectile--with-virtual-dired"
+  (it "runs the body on a local project root"
+    (spy-on 'projectile-project-root :and-return-value "/proj/")
+    (let ((ran nil))
+      (helm-projectile--with-virtual-dired (setq ran t))
+      (expect ran :to-be t)))
+
+  (it "skips the body on a remote root when disabled"
+    (spy-on 'projectile-project-root :and-return-value "/ssh:host:/proj/")
+    (let ((helm-projectile-virtual-dired-remote-enable nil)
+          (ran nil))
+      (helm-projectile--with-virtual-dired (setq ran t))
+      (expect ran :to-be nil)))
+
+  (it "runs the body on a remote root when explicitly enabled"
+    (spy-on 'projectile-project-root :and-return-value "/ssh:host:/proj/")
+    (let ((helm-projectile-virtual-dired-remote-enable t)
+          (ran nil))
+      (helm-projectile--with-virtual-dired (setq ran t))
+      (expect ran :to-be t))))
+
 (describe "helm-projectile-command generated docstrings"
   ;; Every command used to inherit the same "finding files in project"
   ;; docstring; each should now describe what it actually does.
