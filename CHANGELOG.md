@@ -6,6 +6,7 @@
 
 * Fix a crash in the "switch project and search" ag/rg actions when the selected path contained a `%`: the path was handed to `error` as a format string.
 * Report a failed `helm-rg` auto-install instead of silently swallowing the error.
+* Honor `helm-projectile-fuzzy-match` in the file, directory and project sources. They stored the option's symbol rather than its value, so fuzzy matching was effectively always on and setting the variable to `nil` had no effect.
 
 ### Changes
 

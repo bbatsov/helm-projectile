@@ -94,6 +94,20 @@
     (expect (helm-projectile--switch-project-and-ag-action "/no/such/dir%s")
             :to-throw 'user-error)))
 
+(describe "helm-projectile-fuzzy-match"
+  ;; The EIEIO file/dir/project sources used to store the *symbol*
+  ;; `helm-projectile-fuzzy-match' in their `fuzzy-match' slot, which Helm
+  ;; reads as a constant non-nil, so disabling the option had no effect.
+  (it "propagates a disabled setting to the source's fuzzy-match slot"
+    (let ((helm-projectile-fuzzy-match nil))
+      (expect (slot-value (helm-source-projectile-file :name "t") 'fuzzy-match)
+              :to-be nil)))
+
+  (it "propagates an enabled setting to the source's fuzzy-match slot"
+    (let ((helm-projectile-fuzzy-match t))
+      (expect (slot-value (helm-source-projectile-file :name "t") 'fuzzy-match)
+              :to-be t))))
+
 (describe "user-facing error conditions"
   ;; Normal situations (no project, no other file, ...) should signal
   ;; `user-error', not `error', so they don't trip the debugger when a user
