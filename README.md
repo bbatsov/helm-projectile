@@ -1,6 +1,7 @@
 [![License GPL 3][badge-license]](http://www.gnu.org/licenses/gpl-3.0.txt)
 [![MELPA](http://melpa.org/packages/helm-projectile-badge.svg)](http://melpa.org/#/helm-projectile)
 [![MELPA Stable](http://stable.melpa.org/packages/helm-projectile-badge.svg)](http://stable.melpa.org/#/helm-projectile)
+[![codecov](https://codecov.io/gh/bbatsov/helm-projectile/graph/badge.svg)](https://codecov.io/gh/bbatsov/helm-projectile)
 [![Patreon](https://img.shields.io/badge/patreon-donate-orange.svg)](https://www.patreon.com/bbatsov)
 
 ## Helm Projectile
