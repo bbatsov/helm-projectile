@@ -381,6 +381,12 @@
     (expect (helm-projectile-test--ag-command "ag" "--foo")
             :to-equal "ag --ignore TAGS --ignore build/ --foo %s %s %s")))
 
+(describe "helm-projectile-ack deprecation"
+  ;; ack is superseded by rg/ag and Projectile dropped `projectile-ack';
+  ;; the command is kept working but marked obsolete.
+  (it "is marked obsolete"
+    (expect (get 'helm-projectile-ack 'byte-obsolete-info) :to-be-truthy)))
+
 (describe "helm-projectile-ack"
   (before-each
     (spy-on 'projectile-project-root :and-return-value "/proj/")
