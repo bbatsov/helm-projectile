@@ -91,11 +91,12 @@ plain three-slot string so only the ignore globs vary."
 
 (defun helm-projectile-test--ack-args ()
   "Return the args `helm-projectile-ack' would hand to `helm-projectile-grep-or-ack'.
-`run-with-timer' is stubbed to capture them; the returned list is
+The latter is stubbed to capture them (with no live Helm session, the
+call runs straight through); the returned list is
 \(PROJECT-ROOT USE-ACK-P IGNORED ACK-EXECUTABLE INCLUDE)."
-  (let (args)
-    (cl-letf (((symbol-function 'run-with-timer)
-               (lambda (_delay _repeat _fn &rest rest) (setq args rest))))
+  (let (args (helm-alive-p nil))
+    (cl-letf (((symbol-function 'helm-projectile-grep-or-ack)
+               (lambda (&rest rest) (setq args rest))))
       (helm-projectile-ack))
     args))
 

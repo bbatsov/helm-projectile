@@ -406,6 +406,26 @@
     (expect (helm-projectile-test--ag-command "ag" "--foo")
             :to-equal "ag --ignore TAGS --ignore build/ --foo %s %s %s")))
 
+(describe "helm-projectile--run-grep-or-ack"
+  ;; Replaces the old `run-with-timer' hack: run immediately when no Helm
+  ;; session is live, but defer via `helm-run-after-exit' when invoked as an
+  ;; action from one (so a new session doesn't start mid-teardown).
+  (it "runs the search immediately when no Helm session is live"
+    (spy-on 'helm-projectile-grep-or-ack)
+    (spy-on 'helm-run-after-exit)
+    (let ((helm-alive-p nil))
+      (helm-projectile--run-grep-or-ack "/proj/" nil nil nil nil))
+    (expect 'helm-projectile-grep-or-ack :to-have-been-called)
+    (expect 'helm-run-after-exit :not :to-have-been-called))
+
+  (it "defers via helm-run-after-exit when a Helm session is live"
+    (spy-on 'helm-projectile-grep-or-ack)
+    (spy-on 'helm-run-after-exit)
+    (let ((helm-alive-p t))
+      (helm-projectile--run-grep-or-ack "/proj/" nil nil nil nil))
+    (expect 'helm-run-after-exit :to-have-been-called)
+    (expect 'helm-projectile-grep-or-ack :not :to-have-been-called)))
+
 (describe "helm-projectile-ack deprecation"
   ;; ack is superseded by rg/ag and Projectile dropped `projectile-ack';
   ;; the command is kept working but marked obsolete.

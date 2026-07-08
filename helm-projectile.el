@@ -1558,6 +1558,17 @@ This function is obsolete; use `helm-projectile-mode' instead."
   (interactive)
   (helm-projectile-mode -1))
 
+(defun helm-projectile--run-grep-or-ack (&rest args)
+  "Call `helm-projectile-grep-or-ack' with ARGS.
+When invoked from an action of a live Helm session, defer the search
+until that session has exited (via `helm-run-after-exit'), because a new
+Helm session must not start while the current one is tearing down.
+Otherwise run it right away.  This replaces an old `run-with-timer' that
+guessed a fixed 10ms delay for the same purpose."
+  (if helm-alive-p
+      (apply #'helm-run-after-exit #'helm-projectile-grep-or-ack args)
+    (apply #'helm-projectile-grep-or-ack args)))
+
 ;;;###autoload
 (defun helm-projectile-grep (&optional dir files)
   "Helm version of `projectile-grep'.
@@ -1569,8 +1580,7 @@ prefix argument then ask for FILES."
          (include (if (equal current-prefix-arg '(4))
                       (read-string (projectile-prepend-project-name "Grep in: "))
                     files)))
-    (run-with-timer 0.01 nil
-             #'helm-projectile-grep-or-ack project-root nil nil nil include)))
+    (helm-projectile--run-grep-or-ack project-root nil nil nil include)))
 
 (defun helm-projectile--wildcard-to-ack-match (wildcard)
   "Transform WILDCARD into a form expected by \"match:\" filter of \"ack\"."
@@ -1629,8 +1639,7 @@ Use `helm-projectile-rg' or `helm-projectile-ag' instead."
                             (helm-grep-default-command helm-ack-grep-executable))
                         (helm-grep-read-ack-type))
                     types)))
-    (run-with-timer 0.01 nil
-             #'helm-projectile-grep-or-ack project-root t ignored helm-ack-grep-executable include)))
+    (helm-projectile--run-grep-or-ack project-root t ignored helm-ack-grep-executable include)))
 
 (make-obsolete 'helm-projectile-ack
                "use `helm-projectile-rg' or `helm-projectile-ag' instead."
