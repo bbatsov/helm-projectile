@@ -143,21 +143,22 @@ targets are available as actions (and on `C-c o`, `C-c C-o` and `C-c t`
 in the project and directory sources). The `-other-tab` commands need a
 recent Helm and Emacs' `tab-bar-mode`.
 
-If you want to use these commands, you have to activate it to replace
-the normal Projectile commands:
+If you want to use these commands, you have to activate
+`helm-projectile-mode` to replace the normal Projectile commands:
 
 ```el
 ;; (setq helm-projectile-fuzzy-match nil)
 (require 'helm-projectile)
-(helm-projectile-on)
+(helm-projectile-mode)
 ```
 
-If you already activate helm-projectile key bindings and you don't
-like it, you can turn it off and use the normal Projectile bindings
-with command `helm-projectile-off`. Similarly, if you want to disable
-fuzzy matching in Helm Projectile (it is enabled by default), you must
-set `helm-projectile-fuzzy-match` to nil before loading
-`helm-projectile`.
+`helm-projectile-mode` is a global minor mode; toggle it off (`M-x
+helm-projectile-mode` again) to go back to the normal Projectile
+bindings. (The old `helm-projectile-on` / `helm-projectile-off`
+commands still work but are deprecated in favor of the mode.) If you
+want to disable fuzzy matching in Helm Projectile (it is enabled by
+default), you must set `helm-projectile-fuzzy-match` to nil before
+loading `helm-projectile`.
 
 To fully learn Helm Projectile and see what it is capable of, you
 should refer to this guide:

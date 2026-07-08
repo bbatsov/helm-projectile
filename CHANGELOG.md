@@ -5,6 +5,7 @@
 ### New features
 
 * Add other-tab variants (`helm-projectile-find-file-other-tab`, `helm-projectile-find-dir-other-tab`, `helm-projectile-switch-project-other-tab`), matching Helm 4.x's tab-bar support alongside the existing other-window and other-frame variants. "Open in other tab" is also available as an action (bound to `C-c t`) in the project and directory sources.
+* Add `helm-projectile-mode`, a proper global minor mode that installs and removes the Projectile command remaps. `helm-projectile-on`, `helm-projectile-off` and `helm-projectile-toggle` still work but are now deprecated in favor of the mode. The advice helm-projectile installs on Helm (`helm-find-file-or-marked`, `helm-grep-ag-1`) and the `C-c p f` binding in `helm-etags-map` now live with the mode too, so they are only active while it is enabled instead of unconditionally at load.
 
 ### Changes
 

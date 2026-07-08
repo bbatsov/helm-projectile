@@ -353,11 +353,6 @@ to be specific to `helm-projectile-projects-source'."
          helm-source-projectile-projects-actions
          '(helm-projectile-switch-project-by-name-other-tab . :make-first))))
 
-(define-key helm-etags-map (kbd "C-c p f")
-  (lambda ()
-    (interactive)
-    (helm-run-after-exit 'helm-projectile-find-file nil)))
-
 (defun helm-projectile-file-persistent-action (candidate)
   "Previews the contents of a file CANDIDATE in a temporary buffer.
 This is a persistent action for file-related functionality."
@@ -536,12 +531,10 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
           (rename-buffer dired-buffer-name))))))
 
 (defun helm-projectile-run-projectile-hooks-after-find-file (_orig-fun &rest _args)
-  "Run `projectile-find-file-hook' if using projectile."
+  "Run `projectile-find-file-hook' if using projectile.
+Installed as advice on `helm-find-file-or-marked' by `helm-projectile-mode'."
   (when (and projectile-mode (projectile-project-p))
     (run-hooks 'projectile-find-file-hook)))
-
-(advice-add 'helm-find-file-or-marked
-            :after #'helm-projectile-run-projectile-hooks-after-find-file)
 
 (defvar helm-projectile-find-file-map
   (let ((map (copy-keymap helm-find-files-map)))
@@ -1548,17 +1541,19 @@ types (for \"ack\") to include in search."
 
 ;;;###autoload
 (defun helm-projectile-on ()
-  "Turn on `helm-projectile' key bindings."
+  "Turn on `helm-projectile-mode'.
+This function is obsolete; use `helm-projectile-mode' instead."
+  (declare (obsolete helm-projectile-mode "1.7.0"))
   (interactive)
-  (message "Turn on helm-projectile key bindings")
-  (helm-projectile-toggle 1))
+  (helm-projectile-mode 1))
 
 ;;;###autoload
 (defun helm-projectile-off ()
-  "Turn off `helm-projectile' key bindings."
+  "Turn off `helm-projectile-mode'.
+This function is obsolete; use `helm-projectile-mode' instead."
+  (declare (obsolete helm-projectile-mode "1.7.0"))
   (interactive)
-  (message "Turn off helm-projectile key bindings")
-  (helm-projectile-toggle -1))
+  (helm-projectile-mode -1))
 
 ;;;###autoload
 (defun helm-projectile-grep (&optional dir files)
@@ -1650,16 +1645,16 @@ use directly."
           type
           (or input helm-projectile--ag-input))))
 
-;; When calling `helm', the function `helm-grep-ag' uses symbol at point as an
-;; argument `:default-input' (via `helm-sources-using-default-as-input').  This
-;; however sets argument `:input' to an empty string.  As a result the shell
-;; command `ag' (or `rg', or `pt') is being run with the active region or a
-;; symbol at point as a search pattern, but typing in minibuffer starts search
-;; from scratch.  This advice will use symbol active region or a symbol point
-;; as an `input' argument to `helm-grep-ag-1', which will ensure both `helm'
-;; arguments `:default-input' and `:input' are populated.
-(advice-add #'helm-grep-ag-1
-            :filter-args #'helm-projectile--ag-automatic-input)
+;; `helm-projectile-mode' installs `helm-projectile--ag-automatic-input' as
+;; `:filter-args' advice on `helm-grep-ag-1'.  When calling `helm', the
+;; function `helm-grep-ag' uses symbol at point as an argument
+;; `:default-input' (via `helm-sources-using-default-as-input').  This however
+;; sets argument `:input' to an empty string.  As a result the shell command
+;; `ag' (or `rg', or `pt') is being run with the active region or a symbol at
+;; point as a search pattern, but typing in minibuffer starts search from
+;; scratch.  The advice uses the active region or symbol at point as an `input'
+;; argument to `helm-grep-ag-1', which ensures both `helm' arguments
+;; `:default-input' and `:input' are populated.
 
 (defun helm-projectile--ag--region-selection ()
   "Return a default input for `helm-grep-ag'."
@@ -1857,40 +1852,75 @@ package `helm-rg'."
 commands are handled separately because they need a compatibility
 fallback.")
 
+(defun helm-projectile--setup (enable)
+  "Install Helm-Projectile's bindings and advice when ENABLE, else remove them.
+This backs `helm-projectile-mode': it (un)installs the command remaps on
+`projectile-mode-map', swaps `projectile-switch-project-action', and the
+advice and key binding Helm-Projectile relies on.  The advice lives here,
+rather than at load time, so it only affects plain Helm while the mode is
+enabled."
+  (if enable
+      (when (eq projectile-switch-project-action #'projectile-find-file)
+        (setq projectile-switch-project-action #'helm-projectile-find-file))
+    (when (eq projectile-switch-project-action #'helm-projectile-find-file)
+      (setq projectile-switch-project-action #'projectile-find-file)))
+  (pcase-dolist (`(,command . ,helm-command) helm-projectile--command-remaps)
+    (define-key projectile-mode-map (vector 'remap command)
+                (and enable helm-command)))
+  (if enable
+      (progn
+        ;; At the time of writing projectile didn't have neither
+        ;; `projectile-switch-to-project-other-window' nor
+        ;; `projectile-switch-to-project-other-frame' (hopefully these will be
+        ;; names should they be added).  Adding `helm-projectile' bindings in a
+        ;; - hopefully - backward compatible way, by setting up keys in
+        ;; `projectile-command-map'.
+        (if (where-is-internal 'projectile-switch-project-other-window projectile-mode-map nil t t)
+            (define-key projectile-mode-map [remap projectile-switch-project-other-window] #'helm-projectile-switch-project-other-window)
+          (define-key projectile-command-map (kbd "4 p") #'helm-projectile-switch-project-other-window))
+        (if (where-is-internal 'projectile-switch-project-other-frame projectile-mode-map nil t t)
+            (define-key projectile-mode-map [remap projectile-switch-project-other-frame] #'helm-projectile-switch-project-other-frame)
+          (define-key projectile-command-map (kbd "5 p") #'helm-projectile-switch-project-other-frame))
+        (define-key helm-etags-map (kbd "C-c p f")
+                    (lambda ()
+                      (interactive)
+                      (helm-run-after-exit 'helm-projectile-find-file nil)))
+        (advice-add 'helm-find-file-or-marked
+                    :after #'helm-projectile-run-projectile-hooks-after-find-file)
+        (advice-add 'helm-grep-ag-1
+                    :filter-args #'helm-projectile--ag-automatic-input))
+    (if (where-is-internal 'helm-projectile-switch-project-other-window projectile-command-map nil t t)
+        (define-key projectile-mode-map (kbd "4 p") nil)
+      (define-key projectile-mode-map [remap projectile-switch-project-other-window] nil))
+    (if (where-is-internal 'helm-projectile-switch-project-other-frame projectile-command-map nil t t)
+        (define-key projectile-mode-map (kbd "5 p") nil)
+      (define-key projectile-mode-map [remap projectile-switch-project-other-frame] nil))
+    (define-key helm-etags-map (kbd "C-c p f") nil)
+    (advice-remove 'helm-find-file-or-marked
+                   #'helm-projectile-run-projectile-hooks-after-find-file)
+    (advice-remove 'helm-grep-ag-1 #'helm-projectile--ag-automatic-input)))
+
+;;;###autoload
+(define-minor-mode helm-projectile-mode
+  "Toggle the Helm version of Projectile commands.
+
+When enabled, remap Projectile's file, directory, buffer and search
+commands to their Helm-Projectile equivalents on `projectile-mode-map',
+and install the advice and key binding Helm-Projectile relies on.
+Disabling removes all of them."
+  :group 'helm-projectile
+  :require 'helm-projectile
+  :global t
+  (helm-projectile--setup helm-projectile-mode))
+
 (defun helm-projectile-toggle (toggle)
-  "Toggle Helm version of Projectile commands.
-When TOGGLE is greater than 0 turn Helm version of Projectile commands
-on.  When TOGGLE is is less or equal to 0 turn Helm version of commands
-off."
-  (let ((enable (> toggle 0)))
-    (if enable
-        (when (eq projectile-switch-project-action #'projectile-find-file)
-          (setq projectile-switch-project-action #'helm-projectile-find-file))
-      (when (eq projectile-switch-project-action #'helm-projectile-find-file)
-        (setq projectile-switch-project-action #'projectile-find-file)))
-    (pcase-dolist (`(,command . ,helm-command) helm-projectile--command-remaps)
-      (define-key projectile-mode-map (vector 'remap command)
-                  (and enable helm-command)))
-    (if enable
-        (progn
-          ;; At the time of writing projectile didn't have neither
-          ;; `projectile-switch-to-project-other-window' nor
-          ;; `projectile-switch-to-project-other-frame' (hopefully these will be
-          ;; names should they be added).  Adding `helm-projectile' bindings in a
-          ;; - hopefully - backward compatible way, by setting up keys in
-          ;; `projectile-command-map'.
-          (if (where-is-internal 'projectile-switch-project-other-window projectile-mode-map nil t t)
-              (define-key projectile-mode-map [remap projectile-switch-project-other-window] #'helm-projectile-switch-project-other-window)
-            (define-key projectile-command-map (kbd "4 p") #'helm-projectile-switch-project-other-window))
-          (if (where-is-internal 'projectile-switch-project-other-frame projectile-mode-map nil t t)
-              (define-key projectile-mode-map [remap projectile-switch-project-other-frame] #'helm-projectile-switch-project-other-frame)
-            (define-key projectile-command-map (kbd "5 p") #'helm-projectile-switch-project-other-frame)))
-      (if (where-is-internal 'helm-projectile-switch-project-other-window projectile-command-map nil t t)
-          (define-key projectile-mode-map (kbd "4 p") nil)
-        (define-key projectile-mode-map [remap projectile-switch-project-other-window] nil))
-      (if (where-is-internal 'helm-projectile-switch-project-other-frame projectile-command-map nil t t)
-          (define-key projectile-mode-map (kbd "5 p") nil)
-        (define-key projectile-mode-map [remap projectile-switch-project-other-frame] nil)))))
+  "Toggle the Helm version of Projectile commands.
+Turn them on when TOGGLE is greater than 0, off otherwise.
+
+This function is obsolete; use the `helm-projectile-mode' minor mode
+instead."
+  (declare (obsolete helm-projectile-mode "1.7.0"))
+  (helm-projectile-mode (if (> toggle 0) 1 -1)))
 
 ;;;###autoload
 (defun helm-projectile (&optional arg)
