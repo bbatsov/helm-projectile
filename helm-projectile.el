@@ -8,7 +8,7 @@
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
 ;; Version: 1.6.0
-;; Package-Requires: ((emacs "27.1") (helm "3.0") (projectile "2.9"))
+;; Package-Requires: ((emacs "28.1") (helm "3.0") (projectile "3.1.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
