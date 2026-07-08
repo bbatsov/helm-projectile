@@ -75,7 +75,8 @@ Helms.  In these cases their respective custom var for truncation
 of lines will be honored.  E.g. `helm-buffers-truncate-lines'
 dictates the truncation in `helm-projectile-switch-to-buffer'."
   :group 'helm-projectile
-  :type 'boolean)
+  :type 'boolean
+  :package-version '(helm-projectile . "1.0.0"))
 
 (defcustom helm-projectile-remove-current-buffer nil
   "Non-nil if current buffer should be removed from buffer sources.
@@ -84,14 +85,16 @@ as from `helm-projectile-switch-to-buffer',
 `helm-projectile-switch-to-buffer-other-window', and
 `helm-projectile-switch-to-buffer-other-frame'."
   :type 'boolean
-  :group 'helm-projectile)
+  :group 'helm-projectile
+  :package-version '(helm-projectile . "1.4.0"))
 
 ;;;###autoload
 (defcustom helm-projectile-fuzzy-match t
   "Enable fuzzy matching for Helm Projectile commands.
 This needs to be set before loading helm-projectile.el."
   :group 'helm-projectile
-  :type 'boolean)
+  :type 'boolean
+  :package-version '(helm-projectile . "0.14.0"))
 
 (defmacro helm-projectile-define-key (keymap &rest bindings)
   "In KEYMAP, define BINDINGS.
@@ -284,7 +287,8 @@ When `projectile-switch-project-action' is `projectile-find-file' a
    "Ripgrep (rg) in project `C-S-r'" #'helm-projectile--switch-project-and-rg-action)
   "Actions for `helm-source-projectile-projects'."
   :group 'helm-projectile
-  :type '(alist :key-type string :value-type function))
+  :type '(alist :key-type string :value-type function)
+  :package-version '(helm-projectile . "1.0.0"))
 
 (defclass helm-projectile-projects-source (helm-source-sync helm-type-file)
   ((candidates :initform (lambda () (with-helm-current-buffer
@@ -426,7 +430,8 @@ See also `helm-etags-select'."
 It is disabled by default because building a Dired buffer from a
 project's files over TRAMP can be slow."
   :type 'boolean
-  :group 'helm-projectile)
+  :group 'helm-projectile
+  :package-version '(helm-projectile . "1.6.0"))
 
 (defmacro helm-projectile--with-virtual-dired (&rest body)
   "Evaluate BODY unless the virtual Dired manager is disabled here.
@@ -988,14 +993,16 @@ Meant to be added to `helm-cleanup-hook', from which it removes
   "Command to execute when performing `helm-grep' inside a projectile git project.
 See documentation of `helm-grep-default-command' for the format."
   :type 'string
-  :group 'helm-projectile)
+  :group 'helm-projectile
+  :package-version '(helm-projectile . "1.0.0"))
 
 (defcustom helm-projectile-grep-command
   "grep -a -r %e -n%cH -e %p %f ."
   "Command to execute when performing `helm-grep' outside a projectile git project.
 See documentation of `helm-grep-default-command' for the format."
   :type 'string
-  :group 'helm-projectile)
+  :group 'helm-projectile
+  :package-version '(helm-projectile . "1.0.0"))
 
 
 (defcustom helm-projectile-sources-list
@@ -1004,7 +1011,8 @@ See documentation of `helm-grep-default-command' for the format."
     helm-source-projectile-projects)
   "Default sources for `helm-projectile'."
   :type '(repeat symbol)
-  :group 'helm-projectile)
+  :group 'helm-projectile
+  :package-version '(helm-projectile . "0.14.0"))
 
 (defmacro helm-projectile-command (command source prompt &optional not-require-root truncate-lines-var)
   "Template for generic `helm-projectile' commands.
@@ -1104,7 +1112,8 @@ list, because they need it (to match the file at point, or to span every
 known project)."
   :type '(choice (const :tag "Build the full index first" sync)
                  (const :tag "Stream candidates as they are indexed" streaming))
-  :group 'helm-projectile)
+  :group 'helm-projectile
+  :package-version '(helm-projectile . "1.6.0"))
 
 (defmacro helm-projectile--file-sources (streaming &rest sync)
   "Choose file sources per `helm-projectile-find-file-strategy'.
@@ -1432,7 +1441,8 @@ behaviors (for instance ag would not use VCS ignore files).
 When set to `search-tool', the above does not happen."
   :group 'helm-projectile
   :type '(choice (const :tag "Allow projectile to compute ignores" projectile)
-                 (const :tag "Let the search tool compute ignores" search-tool)))
+                 (const :tag "Let the search tool compute ignores" search-tool))
+  :package-version '(helm-projectile . "1.1.0"))
 
 (defun helm-projectile--projectile-ignore-strategy ()
   "True if the ignore strategy is `projectile'."
@@ -1461,7 +1471,8 @@ When set to `search-tool', the above does not happen."
   "Available actions for `helm-projectile-grep-or-ack'.
 The contents of this list are passed as the arguments to `helm-make-actions'."
   :type '(repeat sexp)
-  :group 'helm-projectile)
+  :group 'helm-projectile
+  :package-version '(helm-projectile . "1.0.0"))
 
 (defcustom helm-projectile-set-input-automatically t
   "If non-nil, attempt to set search input automatically.
@@ -1470,7 +1481,8 @@ region), otherwise it uses the current symbol at point (if there is
 one).  Applies to `helm-projectile-grep', `helm-projectile-ack', and
 `helm-projectile-ag'."
   :group 'helm-projectile
-  :type 'boolean)
+  :type 'boolean
+  :package-version '(helm-projectile . "1.0.0"))
 
 (defun helm-projectile-grep-or-ack (&optional dir use-ack-p ack-ignored-pattern ack-executable include)
   "Perform helm-grep at project root.
@@ -1750,7 +1762,8 @@ The question is presented to user when the `helm-grep-ag-command' is not
 pointing to ripgrep (rg) executable and the package `helm-rg' is not
 installed."
   :type 'boolean
-  :group 'helm-projectile)
+  :group 'helm-projectile
+  :package-version '(helm-projectile . "1.4.0"))
 
 (defun helm-projectile-rg--region-selection ()
   "Return a default input for `helm-rg'."
