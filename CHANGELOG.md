@@ -2,6 +2,10 @@
 
 ## master (unreleased)
 
+### New features
+
+* Add other-tab variants (`helm-projectile-find-file-other-tab`, `helm-projectile-find-dir-other-tab`, `helm-projectile-switch-project-other-tab`), matching Helm 4.x's tab-bar support alongside the existing other-window and other-frame variants. "Open in other tab" is also available as an action (bound to `C-c t`) in the project and directory sources.
+
 ### Changes
 
 * Require Emacs 28.1 and Projectile 3.1.0. Projectile 3.1.0 raised its own minimum to Emacs 28.1 (and pulls in `compat`), so helm-projectile can no longer be installed on Emacs 27. The CI matrix drops the 27.2 job accordingly.

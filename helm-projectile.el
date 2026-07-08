@@ -243,6 +243,12 @@ When `projectile-switch-project-action' is `projectile-find-file' a
         (projectile-switch-project-action #'helm-projectile-find-file-other-frame))
     (projectile-switch-project-by-name project)))
 
+(defun helm-projectile-switch-project-by-name-other-tab (project)
+  "Switch to PROJECT and find file in it in other tab."
+  (let ((projectile-completion-system 'helm)
+        (projectile-switch-project-action #'helm-projectile-find-file-other-tab))
+    (projectile-switch-project-by-name project)))
+
 (defvar helm-projectile-projects-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map helm-map)
@@ -250,6 +256,7 @@ When `projectile-switch-project-action' is `projectile-find-file' a
       (kbd "C-d") #'dired
       (kbd "C-c o") #'helm-projectile-switch-project-by-name-other-window
       (kbd "C-c C-o") #'helm-projectile-switch-project-by-name-other-frame
+      (kbd "C-c t") #'helm-projectile-switch-project-by-name-other-tab
       (kbd "M-g") #'helm-projectile-vc
       (kbd "M-e") #'helm-projectile-switch-to-shell
       (kbd "C-s") #'helm-projectile-grep
@@ -267,6 +274,7 @@ When `projectile-switch-project-action' is `projectile-find-file' a
    "Switch to project" #'helm-projectile-switch-project-by-name
    "Switch to project other window `C-c o'" #'helm-projectile-switch-project-by-name-other-window
    "Switch to project other frame `C-c C-o'" #'helm-projectile-switch-project-by-name-other-frame
+   "Switch to project other tab `C-c t'" #'helm-projectile-switch-project-by-name-other-tab
    "Open Dired in project's directory `C-d'" #'dired
    "Open project root in vc-dir or magit `M-g'" #'helm-projectile-vc
    "Switch to Eshell `M-e'" #'helm-projectile-switch-to-shell
@@ -334,6 +342,16 @@ to be specific to `helm-projectile-projects-source'."
         (helm-projectile-hack-actions
          helm-source-projectile-projects-actions
          '(helm-projectile-switch-project-by-name-other-frame . :make-first))))
+
+(defclass helm-projectile-projects-other-tab-source (helm-projectile-projects-source)
+  ())
+
+(cl-defmethod helm-setup-user-source :after ((source helm-projectile-projects-other-tab-source))
+  "Set `helm-projectile-switch-project-by-name-other-tab' as the first action."
+  (setf (slot-value source 'action)
+        (helm-projectile-hack-actions
+         helm-source-projectile-projects-actions
+         '(helm-projectile-switch-project-by-name-other-tab . :make-first))))
 
 (define-key helm-etags-map (kbd "C-c p f")
   (lambda ()
@@ -670,6 +688,20 @@ Meant to be added to `helm-cleanup-hook', from which it removes
   (helm-make-source "Projectile files" 'helm-source-projectile-file-other-frame)
   "Helm source definition for Projectile files.")
 
+(defclass helm-source-projectile-file-other-tab (helm-source-projectile-file)
+  ())
+
+(cl-defmethod helm-setup-user-source ((source helm-source-projectile-file-other-tab))
+  "Make `helm-ff-find-file-other-tab' the first action in SOURCE."
+  (setf (slot-value source 'action)
+        (helm-projectile-hack-actions
+         helm-projectile-file-actions
+         '(helm-ff-find-file-other-tab . :make-first))))
+
+(defvar helm-source-projectile-files-other-tab-list
+  (helm-make-source "Projectile files" 'helm-source-projectile-file-other-tab)
+  "Helm source definition for Projectile files.")
+
 (defvar helm-source-projectile-files-in-all-projects-list
   (helm-build-sync-source "Projectile files in all Projects"
     :candidates (lambda ()
@@ -753,6 +785,21 @@ Meant to be added to `helm-cleanup-hook', from which it removes
     'helm-source-projectile-dired-file-other-frame)
   "Helm source definition for Projectile delete files.")
 
+(defclass helm-source-projectile-dired-file-other-tab (helm-source-projectile-dired-file)
+  ())
+
+(cl-defmethod helm-setup-user-source ((source helm-source-projectile-dired-file-other-tab))
+  "Make `helm-ff-find-file-other-tab' the first action in SOURCE."
+  (setf (slot-value source 'action)
+        (helm-projectile-hack-actions
+         helm-projectile-dired-file-actions
+         '(helm-ff-find-file-other-tab . :make-first))))
+
+(defvar helm-source-projectile-dired-files-other-tab-list
+  (helm-make-source "Projectile files in current Dired buffer"
+    'helm-source-projectile-dired-file-other-tab)
+  "Helm source definition for Projectile delete files.")
+
 (defun helm-projectile-dired-find-dir (dir)
   "Jump to a selected directory DIR from `helm-projectile'."
   (dired (expand-file-name dir (projectile-project-root)))
@@ -768,10 +815,16 @@ Meant to be added to `helm-cleanup-hook', from which it removes
   (dired-other-frame (expand-file-name dir (projectile-project-root)))
   (run-hooks 'projectile-find-dir-hook))
 
+(defun helm-projectile-dired-find-dir-other-tab (dir)
+  "Jump to a selected directory DIR from `helm-projectile' (in other tab)."
+  (dired-other-tab (expand-file-name dir (projectile-project-root)))
+  (run-hooks 'projectile-find-dir-hook))
+
 (defvar helm-source-projectile-directory-actions
   '(("Open Dired" . helm-projectile-dired-find-dir)
     ("Open Dired in other window `C-c o'" . helm-projectile-dired-find-dir-other-window)
     ("Open Dired in other frame `C-c C-o'" . helm-projectile-dired-find-dir-other-frame)
+    ("Open Dired in other tab `C-c t'" . helm-projectile-dired-find-dir-other-tab)
     ("Switch to Eshell `M-e'" . helm-projectile-switch-to-shell)
     ("Grep in projects `C-s'" . helm-projectile-grep)
     ("Create Dired buffer from files `C-c f'" . helm-projectile-dired-files-new-action)
@@ -797,6 +850,7 @@ Meant to be added to `helm-cleanup-hook', from which it removes
                          (kbd "<right>") #'helm-next-source
                          (kbd "C-c o") #'helm-projectile-dired-find-dir-other-window
                          (kbd "C-c C-o") #'helm-projectile-dired-find-dir-other-frame
+                         (kbd "C-c t") #'helm-projectile-dired-find-dir-other-tab
                          (kbd "M-e")   #'helm-projectile-switch-to-shell
                          (kbd "C-c f") #'helm-projectile-dired-files-new-action
                          (kbd "C-c a") #'helm-projectile-dired-files-add-action
@@ -838,6 +892,20 @@ Meant to be added to `helm-cleanup-hook', from which it removes
 
 (defvar helm-source-projectile-directories-other-frame-list
   (helm-make-source "Projectile directories" 'helm-source-projectile-directory-other-frame)
+  "Helm source for listing project directories.")
+
+(defclass helm-source-projectile-directory-other-tab (helm-source-projectile-directory)
+  ())
+
+(cl-defmethod helm-setup-user-source ((source helm-source-projectile-directory-other-tab))
+  "Make `helm-projectile-dired-find-dir-other-tab' the first action in SOURCE."
+  (setf (slot-value source 'action)
+        (helm-projectile-hack-actions
+         helm-source-projectile-directory-actions
+         '(helm-projectile-dired-find-dir-other-tab . :make-first))))
+
+(defvar helm-source-projectile-directories-other-tab-list
+  (helm-make-source "Projectile directories" 'helm-source-projectile-directory-other-tab)
   "Helm source for listing project directories.")
 
 (defvar helm-projectile-buffers-list-cache nil)
@@ -1015,6 +1083,13 @@ Defaults is `helm-projectile-truncate-lines'."
                              'helm-projectile-projects-other-frame-source)
                          "Switch to project: " t)
 
+;;;###autoload(autoload 'helm-projectile-switch-project-other-tab "helm-projectile" nil t)
+(helm-projectile-command "switch-project-other-tab"
+                         (helm-make-source
+                             "Projectile projects"
+                             'helm-projectile-projects-other-tab-source)
+                         "Switch to project: " t)
+
 (defcustom helm-projectile-find-file-strategy 'sync
   "How `helm-projectile-find-file' lists a project's files.
 
@@ -1030,8 +1105,8 @@ indexing command prints, so - like `helm-projectile-find-file-streaming'
 \(which see) - on Git projects it doesn't fold in submodule files or drop
 deleted-but-unstaged ones.
 
-This governs `helm-projectile-find-file' and its other-window and
-other-frame variants.  The dwim commands and
+This governs `helm-projectile-find-file' and its other-window,
+other-frame and other-tab variants.  The dwim commands and
 `helm-projectile-find-file-in-known-projects' always build the full file
 list, because they need it (to match the file at point, or to span every
 known project)."
@@ -1072,6 +1147,14 @@ effect immediately."
                           'helm-source-projectile-files-other-frame-list)
                          "Find file (other frame): ")
 
+;;;###autoload(autoload 'helm-projectile-find-file-other-tab "helm-projectile" nil t)
+(helm-projectile-command "find-file-other-tab"
+                         (helm-projectile--file-sources
+                          'helm-source-projectile-files-streaming-other-tab
+                          'helm-source-projectile-dired-files-other-tab-list
+                          'helm-source-projectile-files-other-tab-list)
+                         "Find file (other tab): ")
+
 ;;;###autoload(autoload 'helm-projectile-find-file-in-known-projects "helm-projectile" nil t)
 (helm-projectile-command "find-file-in-known-projects" 'helm-source-projectile-files-in-all-projects-list "Find file in projects: " t)
 
@@ -1092,6 +1175,12 @@ effect immediately."
                          '(helm-source-projectile-dired-files-other-frame-list
                            helm-source-projectile-directories-other-frame-list)
                          "Find dir (other frame): ")
+
+;;;###autoload(autoload 'helm-projectile-find-dir-other-tab "helm-projectile" nil t)
+(helm-projectile-command "find-dir-other-tab"
+                         '(helm-source-projectile-dired-files-other-tab-list
+                           helm-source-projectile-directories-other-tab-list)
+                         "Find dir (other tab): ")
 
 ;;;###autoload(autoload 'helm-projectile-recentf "helm-projectile" nil t)
 (helm-projectile-command "recentf" 'helm-source-projectile-recentf-list "Recently visited file: ")
@@ -1198,6 +1287,13 @@ or drop deleted-but-unstaged files.")
     helm-projectile-file-actions
     '(find-file-other-frame . :make-first)))
   "Like `helm-source-projectile-files-streaming', but opening in another frame.")
+
+(defvar helm-source-projectile-files-streaming-other-tab
+  (helm-projectile--make-streaming-source
+   (helm-projectile-hack-actions
+    helm-projectile-file-actions
+    '(helm-ff-find-file-other-tab . :make-first)))
+  "Like `helm-source-projectile-files-streaming', but opening in another tab.")
 
 ;;;###autoload(autoload 'helm-projectile-find-file-streaming "helm-projectile" nil t)
 (helm-projectile-command "find-file-streaming"

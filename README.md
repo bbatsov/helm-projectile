@@ -134,6 +134,14 @@ so it doesn't fold in submodule files or drop deleted-but-unstaged ones.
 The `helm-projectile-find-file-streaming` command streams regardless of
 this setting.
 
+Finding files, finding directories and switching projects each come in
+`-other-window`, `-other-frame` and `-other-tab` variants
+(e.g. `helm-projectile-find-file-other-tab`), matching Emacs' own
+`C-x 4` / `C-x 5` / `C-x t` families. Inside a Helm session the same
+targets are available as actions (and on `C-c o`, `C-c C-o` and `C-c t`
+in the project and directory sources). The `-other-tab` commands need a
+recent Helm and Emacs' `tab-bar-mode`.
+
 If you want to use these commands, you have to activate it to replace
 the normal Projectile commands:
 
