@@ -101,7 +101,8 @@ these are the supported commands:
 * `helm-projectile-find-dir`
 * `helm-projectile-recentf`
 * `helm-projectile-switch-to-buffer`
-* `helm-projectile-grep` (can be used for both grep or ack)
+* `helm-projectile-grep`
+* `helm-projectile-ack` (deprecated - use `helm-projectile-rg` or `helm-projectile-ag`)
 * `helm-projectile-ag`
 * `helm-projectile-rg`
 * Replace Helm equivalent commands in `projectile-commander`

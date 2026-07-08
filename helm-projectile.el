@@ -1596,7 +1596,11 @@ prefix argument then ask for FILES."
   "Run an ack search in the current project with Helm.
 DIR directory where to search, if not set then current project root is
 used.  TYPES is a list of types to include in search.  When called with
-a prefix argument, then ask for TYPES."
+a prefix argument, then ask for TYPES.
+
+This command is obsolete: ack has been superseded by ripgrep and the
+silver searcher, and Projectile itself has dropped `projectile-ack'.
+Use `helm-projectile-rg' or `helm-projectile-ag' instead."
   (interactive)
   (let* ((project-root (or dir (projectile-project-root) (user-error "You're not in a project")))
          (ignored (when (helm-projectile--projectile-ignore-strategy)
@@ -1629,6 +1633,10 @@ a prefix argument, then ask for TYPES."
                     types)))
     (run-with-timer 0.01 nil
              #'helm-projectile-grep-or-ack project-root t ignored helm-ack-grep-executable include)))
+
+(make-obsolete 'helm-projectile-ack
+               "use `helm-projectile-rg' or `helm-projectile-ag' instead."
+               "1.7.0")
 
 (defvar helm-projectile--ag-input nil
   "The value of input to be used in a next `helm-projectile-ag' call.")
