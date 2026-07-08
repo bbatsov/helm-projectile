@@ -6,6 +6,10 @@
 
 * Require Emacs 28.1 and Projectile 3.1.0. Projectile 3.1.0 raised its own minimum to Emacs 28.1 (and pulls in `compat`), so helm-projectile can no longer be installed on Emacs 27. The CI matrix drops the 27.2 job accordingly.
 
+### Internal
+
+* Add a shared test helper module (`test/helm-projectile-test-helper.el`) with a temporary-project sandbox, and broaden unit coverage of the pure helpers (`helm-projectile-hack-actions`, `helm-projectile--wildcard-to-ack-match`, `helm-projectile--move-selection-p`, `helm-projectile--files-display-real`) and `helm-projectile-files-in-current-dired-buffer`.
+
 ## 1.6.0 (2026-07-01)
 
 ### New features
