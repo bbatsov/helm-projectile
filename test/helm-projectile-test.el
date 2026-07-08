@@ -23,6 +23,19 @@
 
 ;;; Code:
 
+;; Instrument the package for coverage when `UNDERCOVER_FORCE' is set (the CI
+;; coverage job sets it).  Eldev loads the package before the test files, so
+;; once `undercover' is watching `load' we re-load it from source to
+;; instrument it.  Gated on the env var so ordinary local runs and the main
+;; CI matrix are untouched; needs `--loading=source' to load the .el.
+(when (and (getenv "UNDERCOVER_FORCE")
+           (require 'undercover nil t))
+  (undercover "helm-projectile.el"
+              (:report-format 'lcov)
+              (:report-file "coverage/lcov.info")
+              (:send-report nil))
+  (load "helm-projectile" nil t))
+
 (require 'helm-projectile)
 (require 'buttercup)
 (require 'helm-projectile-test-helper)

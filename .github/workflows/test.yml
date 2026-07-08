@@ -29,3 +29,27 @@ jobs:
       run: |
         eldev -p -dtT test
         eldev -dtT compile --warnings-as-errors
+
+  coverage:
+    runs-on: ubuntu-latest
+    container: silex/emacs:30.2-ci-eldev
+    # Coverage is informational - never let it block the build.
+    continue-on-error: true
+    steps:
+    - name: Check out the source code
+      uses: actions/checkout@v6
+
+    # `UNDERCOVER_FORCE' turns on the instrumentation in the test suite, and
+    # `--loading=source' makes Eldev load the .el (not the packaged .elc) so
+    # undercover can instrument it.  Writes coverage/lcov.info.
+    - name: Measure test coverage
+      env:
+        UNDERCOVER_FORCE: 'true'
+      run: eldev --loading=source -dtT test
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        files: ./coverage/lcov.info
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: false

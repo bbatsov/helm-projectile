@@ -10,3 +10,9 @@
 
 ;; Buttercup is the test framework.
 (eldev-add-extra-dependencies 'test 'buttercup)
+
+;; `undercover' measures test coverage.  The test suite instruments the
+;; package with it (see `test/helm-projectile-test.el'), but it only does
+;; anything under CI or when `UNDERCOVER_FORCE' is set, so local runs are
+;; unaffected.
+(eldev-add-extra-dependencies 'test 'undercover)
