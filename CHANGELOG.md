@@ -5,6 +5,7 @@
 ### Changes
 
 * Require Emacs 28.1 and Projectile 3.1.0. Projectile 3.1.0 raised its own minimum to Emacs 28.1 (and pulls in `compat`), so helm-projectile can no longer be installed on Emacs 27. The CI matrix drops the 27.2 job accordingly.
+* Drop the dead "Find file in Elscreen" grep/ack action. Helm removed elscreen support (`helm-grep-jump-elscreen` no longer exists), so that action errored for anyone who still had elscreen installed.
 
 ### Internal
 

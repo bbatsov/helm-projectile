@@ -308,6 +308,14 @@
       (expect (slot-value (helm-source-projectile-file :name "t") 'fuzzy-match)
               :to-be t))))
 
+(describe "helm-projectile-grep-or-ack-actions"
+  ;; Guard against dead action references: Helm dropped elscreen support, so
+  ;; every function named in the default action list must actually exist.
+  (it "names only functions that are defined"
+    (let ((actions (apply #'helm-make-actions helm-projectile-grep-or-ack-actions)))
+      (dolist (action actions)
+        (expect (fboundp (cdr action)) :to-be-truthy)))))
+
 (describe "helm-projectile ignore lists"
   ;; The union of Projectile's ignores with the `grep-find-ignored-*'
   ;; defaults feeds every search command; several past bugs lived here.
