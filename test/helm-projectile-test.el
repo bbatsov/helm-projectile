@@ -295,6 +295,71 @@
       (expect (slot-value (helm-source-projectile-file :name "t") 'fuzzy-match)
               :to-be t))))
 
+(describe "helm-projectile ignore lists"
+  ;; The union of Projectile's ignores with the `grep-find-ignored-*'
+  ;; defaults feeds every search command; several past bugs lived here.
+  (before-each
+    (spy-on 'projectile-ignored-files-rel :and-return-value '("TAGS" "a.log"))
+    (spy-on 'projectile-ignored-directories-rel
+            :and-return-value '("build" "node_modules")))
+
+  (it "unions the Projectile and grep ignored files, de-duplicated"
+    (let ((grep-find-ignored-files '("*.o" "TAGS")))
+      (expect (sort (copy-sequence (helm-projectile--ignored-files)) #'string<)
+              :to-equal '("*.o" "TAGS" "a.log"))))
+
+  (it "unions ignored directories as directory names, de-duplicated"
+    (let ((grep-find-ignored-directories '(".git" "build")))
+      (expect (sort (copy-sequence (helm-projectile--ignored-directories)) #'string<)
+              :to-equal '(".git/" "build/" "node_modules/")))))
+
+(describe "helm-projectile-grep-or-ack command construction"
+  (before-each
+    (spy-on 'projectile-project-root :and-return-value "/proj/")
+    (spy-on 'projectile-project-vcs :and-return-value 'git))
+
+  (it "uses git grep in a git project when projectile-use-git-grep is on"
+    (let ((projectile-use-git-grep t))
+      (expect (helm-projectile-test--grep-command "/proj/" nil nil nil nil)
+              :to-equal helm-projectile-git-grep-command)))
+
+  (it "uses plain grep otherwise"
+    (let ((projectile-use-git-grep nil))
+      (expect (helm-projectile-test--grep-command "/proj/" nil nil nil nil)
+              :to-equal helm-projectile-grep-command)))
+
+  (it "strips the trailing directory from grep when an include is given"
+    (let ((projectile-use-git-grep nil))
+      (expect (helm-projectile-test--grep-command "/proj/" nil nil nil "*.el")
+              :to-equal "grep -a -r %e -n%cH -e %p %f")))
+
+  (it "builds an ack command, inserting the include and ignore slots"
+    (expect (helm-projectile-test--grep-command "/proj/" t nil "ack" nil)
+            :to-equal "ack -H --no-group --no-color %p %f")
+    (expect (helm-projectile-test--grep-command "/proj/" t "--type-add" "ack" "elisp")
+            :to-equal "ack -H --no-group --no-color %e --type-add %p %f")))
+
+(describe "helm-projectile--ag-1 ignore globs"
+  ;; The ignore syntax differs by searcher: ag/pt take `--ignore', rg takes
+  ;; `--glob !'.  Options are appended after the ignores, before the slots.
+  (before-each
+    (spy-on 'helm-projectile--ignored-files :and-return-value '("TAGS"))
+    (spy-on 'helm-projectile--ignored-directories :and-return-value '("build/")))
+
+  (it "uses --ignore for ag and pt"
+    (expect (helm-projectile-test--ag-command "ag")
+            :to-equal "ag --ignore TAGS --ignore build/ %s %s %s")
+    (expect (helm-projectile-test--ag-command "pt")
+            :to-equal "ag --ignore TAGS --ignore build/ %s %s %s"))
+
+  (it "uses --glob ! for rg"
+    (expect (helm-projectile-test--ag-command "rg")
+            :to-equal "ag --glob !TAGS --glob !build/ %s %s %s"))
+
+  (it "appends explicit options after the ignore globs"
+    (expect (helm-projectile-test--ag-command "ag" "--foo")
+            :to-equal "ag --ignore TAGS --ignore build/ --foo %s %s %s")))
+
 (describe "user-facing error conditions"
   ;; Normal situations (no project, no other file, ...) should signal
   ;; `user-error', not `error', so they don't trip the debugger when a user

@@ -9,6 +9,7 @@
 ### Internal
 
 * Add a shared test helper module (`test/helm-projectile-test-helper.el`) with a temporary-project sandbox, and broaden unit coverage of the pure helpers (`helm-projectile-hack-actions`, `helm-projectile--wildcard-to-ack-match`, `helm-projectile--move-selection-p`, `helm-projectile--files-display-real`) and `helm-projectile-files-in-current-dired-buffer`.
+* Cover the search-command construction: the grep/git-grep/ack command templates built by `helm-projectile-grep-or-ack`, the per-searcher ignore globs (`--ignore` vs `--glob !`) built by `helm-projectile--ag-1`, and the ignored-files/directories unions.
 
 ## 1.6.0 (2026-07-01)
 
