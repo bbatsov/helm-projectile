@@ -571,6 +571,90 @@
     (expect (helm-projectile-test--sources)
             :to-be 'helm-source-projectile-files-streaming-other-tab)))
 
+(describe "helm-projectile (entry point)"
+  (before-each
+    (spy-on 'projectile-maybe-invalidate-cache)
+    (spy-on 'projectile-project-name :and-return-value "demo")
+    (spy-on 'projectile-prepend-project-name :and-call-fake #'identity))
+
+  (it "shows the configured project sources when in a project"
+    (spy-on 'helm)
+    (spy-on 'projectile-project-p :and-return-value t)
+    (helm-projectile)
+    (expect (helm-projectile-test--sources) :to-equal helm-projectile-sources-list))
+
+  (it "falls back to switching project when not in a project"
+    (spy-on 'projectile-project-p :and-return-value nil)
+    (spy-on 'helm-projectile-switch-project)
+    (helm-projectile)
+    (expect 'helm-projectile-switch-project :to-have-been-called)))
+
+(describe "helm-projectile-grep (entry point)"
+  (it "hands the project root and includes to the deferred runner"
+    (spy-on 'projectile-project-root :and-return-value "/proj/")
+    (spy-on 'helm-projectile--run-grep-or-ack)
+    (helm-projectile-grep)
+    (expect 'helm-projectile--run-grep-or-ack
+            :to-have-been-called-with "/proj/" nil nil nil nil)))
+
+(describe "helm-projectile-file-persistent-action"
+  (it "previews the file's contents in the preview buffer"
+    (spy-on 'helm-get-attr :and-return-value nil)
+    (spy-on 'helm-set-attr)
+    (helm-projectile-test-with-sandbox
+      (helm-projectile-test-with-files '("a.el")
+        (write-region "hello preview" nil (expand-file-name "a.el") nil 'silent)
+        (unwind-protect
+            (progn
+              (helm-projectile-file-persistent-action (expand-file-name "a.el"))
+              (expect (with-current-buffer " *helm-projectile persistent*"
+                        (buffer-string))
+                      :to-match "hello preview"))
+          (when (get-buffer " *helm-projectile persistent*")
+            (kill-buffer " *helm-projectile persistent*")))))))
+
+(describe "helm-projectile--find-file-dwim-1"
+  (it "runs the one-candidate action when a single file matches"
+    (spy-on 'projectile-project-root :and-return-value "/proj/")
+    (spy-on 'projectile-current-project-files :and-return-value '("a.el" "b.el"))
+    (spy-on 'projectile-select-files :and-return-value '("a.el"))
+    (let (opened)
+      (helm-projectile--find-file-dwim-1 (lambda (f) (setq opened f)) nil "Find: ")
+      (expect opened :to-equal "/proj/a.el"))))
+
+(describe "helm-projectile--find-other-file-1"
+  (it "runs the one-candidate action when a single other file exists"
+    (spy-on 'projectile-project-root :and-return-value "/proj/")
+    (spy-on 'buffer-file-name :and-return-value "/proj/a.c")
+    (spy-on 'projectile-get-other-files :and-return-value '("a.h"))
+    (let (opened)
+      (helm-projectile--find-other-file-1 (lambda (f) (setq opened f)) nil "Find: " nil)
+      (expect opened :to-equal "/proj/a.h"))))
+
+(describe "helm-projectile-dired-files-delete-action"
+  ;; Remove a marked file from a virtual Dired buffer: the buffer is rebuilt
+  ;; from the set-exclusive-or of its files and the marked ones.
+  (it "rebuilds the Dired buffer without the marked file"
+    (helm-projectile-test-with-sandbox
+      (helm-projectile-test-with-files '("a.el" "b.el" "c.el")
+        (spy-on 'projectile-project-root :and-return-value default-directory)
+        (let ((buf (dired (cons "hp-del-dired" '("a.el" "b.el" "c.el"))))
+              (helm-current-buffer nil))
+          (setq helm-current-buffer buf)
+          (spy-on 'helm-marked-candidates
+                  :and-return-value (list (file-truename (expand-file-name "b.el"))))
+          (unwind-protect
+              (progn
+                (helm-projectile-dired-files-delete-action
+                 (file-truename (expand-file-name "b.el")))
+                (with-current-buffer "hp-del-dired"
+                  (let ((entries (helm-projectile-files-in-current-dired-buffer)))
+                    (expect entries :to-contain (file-truename (expand-file-name "a.el")))
+                    (expect entries :to-contain (file-truename (expand-file-name "c.el")))
+                    (expect entries :not :to-contain
+                            (file-truename (expand-file-name "b.el"))))))
+            (when (get-buffer "hp-del-dired") (kill-buffer "hp-del-dired"))))))))
+
 (describe "user-facing error conditions"
   ;; Normal situations (no project, no other file, ...) should signal
   ;; `user-error', not `error', so they don't trip the debugger when a user
