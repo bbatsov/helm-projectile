@@ -381,6 +381,105 @@
     (expect (helm-projectile-test--ag-command "ag" "--foo")
             :to-equal "ag --ignore TAGS --ignore build/ --foo %s %s %s")))
 
+(describe "helm-projectile-ack"
+  (before-each
+    (spy-on 'projectile-project-root :and-return-value "/proj/")
+    (spy-on 'helm-projectile--ignored-directories :and-return-value '("build/"))
+    (spy-on 'helm-projectile--ignored-files :and-return-value '("TAGS"))
+    (spy-on 'projectile-patterns-to-ignore :and-return-value '("*.log")))
+
+  (it "detects ack and builds --ignore-dir/--ignore-file arguments"
+    (spy-on 'executable-find
+            :and-call-fake (lambda (e &rest _) (when (string= e "ack") "ack")))
+    (let ((args (helm-projectile-test--ack-args)))
+      (expect (nth 3 args) :to-equal "ack")
+      (expect (nth 2 args) :to-match "--ignore-dir=build")
+      (expect (nth 2 args) :to-match "--ignore-file=match:")))
+
+  (it "falls back to ack-grep when only ack-grep is present"
+    (spy-on 'executable-find
+            :and-call-fake (lambda (e &rest _) (when (string= e "ack-grep") "ack-grep")))
+    (expect (nth 3 (helm-projectile-test--ack-args)) :to-equal "ack-grep"))
+
+  (it "signals a user-error when neither ack nor ack-grep is available"
+    (spy-on 'executable-find :and-return-value nil)
+    (expect (helm-projectile-ack) :to-throw 'user-error)))
+
+(describe "helm-projectile--ag--region-selection"
+  ;; The default search input: nil when disabled, otherwise the symbol at
+  ;; point (the active-region branch is covered via the grep tests).
+  (it "returns nil when automatic input is disabled"
+    (let ((helm-projectile-set-input-automatically nil))
+      (expect (helm-projectile--ag--region-selection) :to-be nil)))
+
+  (it "returns the symbol at point when enabled"
+    (with-temp-buffer
+      (insert "foobar")
+      (goto-char (point-min))
+      (let ((helm-projectile-set-input-automatically t))
+        (expect (helm-projectile--ag--region-selection) :to-equal "foobar")))))
+
+(describe "helm-projectile-remove-known-project"
+  (it "removes each marked project after confirmation"
+    (spy-on 'helm-marked-candidates :and-return-value '("/a/" "/b/"))
+    (spy-on 'y-or-n-p :and-return-value t)
+    (spy-on 'projectile-remove-known-project)
+    (helm-projectile-remove-known-project nil)
+    (expect 'projectile-remove-known-project :to-have-been-called-times 2))
+
+  (it "removes nothing when the user declines"
+    (spy-on 'helm-marked-candidates :and-return-value '("/a/"))
+    (spy-on 'y-or-n-p :and-return-value nil)
+    (spy-on 'projectile-remove-known-project)
+    (helm-projectile-remove-known-project nil)
+    (expect 'projectile-remove-known-project :not :to-have-been-called)))
+
+(describe "helm-projectile-all-dired-buffers"
+  (it "returns the names of Dired-mode buffers"
+    (helm-projectile-test-with-sandbox
+      (helm-projectile-test-with-files '("a.el")
+        (let ((buf (dired default-directory)))
+          (unwind-protect
+              (expect (helm-projectile-all-dired-buffers)
+                      :to-contain (buffer-name buf))
+            (kill-buffer buf)))))))
+
+(describe "helm-projectile-switch-project-by-name"
+  ;; Each variant switches with a Helm-specific `projectile-switch-project-action'.
+  (it "swaps projectile-find-file for its Helm version"
+    (let ((projectile-switch-project-action #'projectile-find-file)
+          captured)
+      (cl-letf (((symbol-function 'projectile-switch-project-by-name)
+                 (lambda (&rest _) (setq captured projectile-switch-project-action))))
+        (helm-projectile-switch-project-by-name "/proj/"))
+      (expect captured :to-be 'helm-projectile-find-file)))
+
+  (it "uses the other-window finder for the other-window variant"
+    (let (captured)
+      (cl-letf (((symbol-function 'projectile-switch-project-by-name)
+                 (lambda (&rest _) (setq captured projectile-switch-project-action))))
+        (helm-projectile-switch-project-by-name-other-window "/proj/"))
+      (expect captured :to-be 'helm-projectile-find-file-other-window))))
+
+(describe "helm-projectile-dired-files-new-action"
+  ;; The virtual Dired manager: build a Dired buffer from the marked files.
+  (it "creates a Dired buffer named after the user's choice"
+    (helm-projectile-test-with-sandbox
+      (helm-projectile-test-with-files '("a.el" "b.el")
+        (spy-on 'projectile-project-root :and-return-value default-directory)
+        (spy-on 'helm-marked-candidates
+                :and-return-value (list (expand-file-name "a.el")
+                                        (expand-file-name "b.el")))
+        (spy-on 'completing-read :and-return-value "hp-test-dired")
+        (unwind-protect
+            (progn
+              (helm-projectile-dired-files-new-action (expand-file-name "a.el"))
+              (expect (get-buffer "hp-test-dired") :to-be-truthy)
+              (with-current-buffer "hp-test-dired"
+                (expect major-mode :to-be 'dired-mode)))
+          (when (get-buffer "hp-test-dired")
+            (kill-buffer "hp-test-dired")))))))
+
 (describe "user-facing error conditions"
   ;; Normal situations (no project, no other file, ...) should signal
   ;; `user-error', not `error', so they don't trip the debugger when a user
