@@ -36,8 +36,11 @@ The directory is created before BODY and deleted afterwards, so a suite
 can build a throwaway project tree on disk without touching the user's
 files."
   (declare (indent 0) (debug t))
+  ;; `file-truename' so the root matches the truenames Dired reports back
+  ;; (on macOS the temp dir lives under a symlinked /var -> /private/var).
   `(let ((default-directory (file-name-as-directory
-                             (make-temp-file "helm-projectile-test" t))))
+                             (file-truename
+                              (make-temp-file "helm-projectile-test" t)))))
      (unwind-protect
          (progn ,@body)
        (delete-directory default-directory t))))

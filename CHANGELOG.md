@@ -19,6 +19,7 @@
 * Cover the search-command construction: the grep/git-grep/ack command templates built by `helm-projectile-grep-or-ack`, the per-searcher ignore globs (`--ignore` vs `--glob !`) built by `helm-projectile--ag-1`, and the ignored-files/directories unions.
 * Measure test coverage with `undercover` and report it to Codecov from a dedicated (non-blocking) CI job.
 * Raise test coverage from ~34% to ~46%: cover `helm-projectile-ack`'s ignore-argument building and executable detection, the ag/rg default-input helpers, `helm-projectile-remove-known-project`, `helm-projectile-all-dired-buffers`, the `helm-projectile-switch-project-by-name` variants, and the `helm-projectile-dired-files-new-action` virtual-Dired builder.
+* Raise test coverage further to ~55%: cover the `helm-projectile` entry point, `helm-projectile-grep`, `helm-projectile-file-persistent-action`, the `find-file-dwim` / `find-other-file` single-candidate paths, and the `helm-projectile-dired-files-delete-action` virtual-Dired action.
 
 ## 1.6.0 (2026-07-01)
 
