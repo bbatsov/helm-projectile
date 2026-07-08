@@ -43,6 +43,7 @@
 
 ### Internal
 
+* Replace the fixed `run-with-timer` delay in `helm-projectile-grep`/`helm-projectile-ack` (used so a search invoked as an action didn't start until the current Helm session tore down) with `helm-run-after-exit` when a session is live, and a direct call otherwise. No more arbitrary 10ms latency on the standalone commands, and the deferral is now explicit.
 * Tidy up top-level dependencies: `require` `grep` from the helpers that actually use `grep-find-ignored-files`/`-directories` (`helm-projectile--ignored-files`/`-directories`) instead of relying on it being pulled in transitively, and drop the unused `helm-locate` and `helm-global-bindings` requires. (No startup-time change - Helm loads all three transitively anyway; this just makes the dependencies honest.)
 * Drive `helm-projectile-toggle`'s command remaps from a single table (`helm-projectile--command-remaps`) instead of two hand-maintained copies of ~20 `define-key` calls.
 * Extract the remote virtual-Dired guard duplicated across the three Dired file actions into a `helm-projectile--with-virtual-dired` macro.
