@@ -43,12 +43,11 @@
 ;; built-in libraries
 (require 'subr-x)
 (require 'cl-lib)
-(require 'grep) ;; TODO: Probably we should defer this require
+;; `grep' is loaded lazily (only when computing ignores for a search); see
+;; `helm-projectile--ignored-files'.
 
 (require 'helm-core)
-(require 'helm-global-bindings)
 (require 'helm-types)
-(require 'helm-locate)
 (require 'helm-buffers)
 (require 'helm-files)
 (require 'helm-grep)
@@ -1441,11 +1440,15 @@ When set to `search-tool', the above does not happen."
 
 (defun helm-projectile--ignored-files ()
   "Compute ignored files."
+  ;; `grep' provides `grep-find-ignored-files'; load it on demand rather than
+  ;; at startup, since it is only needed when a search computes ignores.
+  (require 'grep)
   (cl-union (projectile-ignored-files-rel) grep-find-ignored-files
             :test #'equal))
 
 (defun helm-projectile--ignored-directories ()
   "Compute ignored directories."
+  (require 'grep)
   (cl-union (mapcar #'file-name-as-directory (projectile-ignored-directories-rel))
             (mapcar #'file-name-as-directory grep-find-ignored-directories)
             :test #'equal))

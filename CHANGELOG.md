@@ -43,6 +43,7 @@
 
 ### Internal
 
+* Tidy up top-level dependencies: `require` `grep` from the helpers that actually use `grep-find-ignored-files`/`-directories` (`helm-projectile--ignored-files`/`-directories`) instead of relying on it being pulled in transitively, and drop the unused `helm-locate` and `helm-global-bindings` requires. (No startup-time change - Helm loads all three transitively anyway; this just makes the dependencies honest.)
 * Drive `helm-projectile-toggle`'s command remaps from a single table (`helm-projectile--command-remaps`) instead of two hand-maintained copies of ~20 `define-key` calls.
 * Extract the remote virtual-Dired guard duplicated across the three Dired file actions into a `helm-projectile--with-virtual-dired` macro.
 * Sharp-quote (`#'`) function references so the byte-compiler can catch typos in them.
