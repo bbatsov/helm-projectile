@@ -47,17 +47,18 @@
     (expect (commandp 'helm-projectile-switch-project) :to-be-truthy)
     (expect (commandp 'helm-projectile-switch-to-buffer) :to-be-truthy)))
 
-(describe "helm-projectile-toggle"
+(describe "helm-projectile-mode"
   ;; This is the regression guard for helm-projectile referencing Projectile
   ;; internals that no longer exist (the commander macro/bindings were the
   ;; breakage that prompted this suite).  Toggling must not error and must
-  ;; (un)install the command remaps on `projectile-mode-map'.
+  ;; (un)install the command remaps on `projectile-mode-map', plus the advice
+  ;; the mode owns.
   (after-each
     ;; Always leave a clean slate regardless of what the example did.
-    (helm-projectile-toggle 0))
+    (helm-projectile-mode -1))
 
   (it "enables without error and remaps core commands to their Helm versions"
-    (expect (helm-projectile-toggle 1) :not :to-throw)
+    (expect (helm-projectile-mode 1) :not :to-throw)
     (expect (lookup-key projectile-mode-map [remap projectile-find-file])
             :to-be 'helm-projectile-find-file)
     (expect (lookup-key projectile-mode-map [remap projectile-switch-to-buffer])
@@ -70,17 +71,41 @@
             :to-be 'helm-projectile-rg))
 
   (it "installs a remap for every command in the table"
-    (helm-projectile-toggle 1)
+    (helm-projectile-mode 1)
     (dolist (entry helm-projectile--command-remaps)
       (expect (lookup-key projectile-mode-map (vector 'remap (car entry)))
               :to-be (cdr entry))))
 
-  (it "disables without error and clears the remaps"
-    (helm-projectile-toggle 1)
-    (expect (helm-projectile-toggle 0) :not :to-throw)
+  (it "installs its advice only while enabled"
+    (require 'nadvice)
+    (expect (advice-member-p #'helm-projectile-run-projectile-hooks-after-find-file
+                             'helm-find-file-or-marked)
+            :not :to-be-truthy)
+    (helm-projectile-mode 1)
+    (expect (advice-member-p #'helm-projectile-run-projectile-hooks-after-find-file
+                             'helm-find-file-or-marked)
+            :to-be-truthy)
+    (expect (advice-member-p #'helm-projectile--ag-automatic-input 'helm-grep-ag-1)
+            :to-be-truthy))
+
+  (it "disables without error, clears the remaps and removes the advice"
+    (helm-projectile-mode 1)
+    (expect (helm-projectile-mode -1) :not :to-throw)
     (dolist (entry helm-projectile--command-remaps)
       (expect (lookup-key projectile-mode-map (vector 'remap (car entry)))
-              :to-be nil))))
+              :to-be nil))
+    (expect (advice-member-p #'helm-projectile-run-projectile-hooks-after-find-file
+                             'helm-find-file-or-marked)
+            :not :to-be-truthy))
+
+  (it "keeps helm-projectile-on/off/toggle as obsolete aliases"
+    (expect (get 'helm-projectile-on 'byte-obsolete-info) :to-be-truthy)
+    (expect (get 'helm-projectile-off 'byte-obsolete-info) :to-be-truthy)
+    (expect (get 'helm-projectile-toggle 'byte-obsolete-info) :to-be-truthy)
+    (helm-projectile-on)
+    (expect helm-projectile-mode :to-be-truthy)
+    (helm-projectile-off)
+    (expect helm-projectile-mode :not :to-be-truthy)))
 
 (describe "helm-projectile--files-display-real"
   (it "maps each file to its absolute path under the project root"
