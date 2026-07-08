@@ -480,6 +480,46 @@
           (when (get-buffer "hp-test-dired")
             (kill-buffer "hp-test-dired")))))))
 
+(describe "helm-projectile other-tab support"
+  ;; Helm 4.x gained tab-bar actions; helm-projectile exposes them as
+  ;; other-tab command/source variants alongside other-window/other-frame.
+  (it "defines the other-tab commands"
+    (expect (commandp 'helm-projectile-find-file-other-tab) :to-be-truthy)
+    (expect (commandp 'helm-projectile-find-dir-other-tab) :to-be-truthy)
+    (expect (commandp 'helm-projectile-switch-project-other-tab) :to-be-truthy))
+
+  (it "promotes the other-tab action as the default in each source"
+    (cl-flet ((first-action (src) (cdar (helm-get-attr 'action src))))
+      (expect (first-action helm-source-projectile-files-other-tab-list)
+              :to-be 'helm-ff-find-file-other-tab)
+      (expect (first-action helm-source-projectile-files-streaming-other-tab)
+              :to-be 'helm-ff-find-file-other-tab)
+      (expect (first-action helm-source-projectile-directories-other-tab-list)
+              :to-be 'helm-projectile-dired-find-dir-other-tab)))
+
+  (it "installs the other-tab finder as the project switch action"
+    (let (captured)
+      (cl-letf (((symbol-function 'projectile-switch-project-by-name)
+                 (lambda (&rest _) (setq captured projectile-switch-project-action))))
+        (helm-projectile-switch-project-by-name-other-tab "/proj/"))
+      (expect captured :to-be 'helm-projectile-find-file-other-tab)))
+
+  (it "dispatches find-file-other-tab sync/streaming like the other variants"
+    (spy-on 'helm)
+    (spy-on 'projectile-project-p :and-return-value t)
+    (spy-on 'projectile-maybe-invalidate-cache)
+    (spy-on 'projectile-project-name :and-return-value "demo")
+    (spy-on 'projectile-prepend-project-name :and-call-fake #'identity)
+    (helm-projectile-find-file-other-tab)
+    (expect (helm-projectile-test--sources)
+            :to-equal '(helm-source-projectile-dired-files-other-tab-list
+                        helm-source-projectile-files-other-tab-list))
+    (spy-calls-reset 'helm)
+    (let ((helm-projectile-find-file-strategy 'streaming))
+      (helm-projectile-find-file-other-tab))
+    (expect (helm-projectile-test--sources)
+            :to-be 'helm-source-projectile-files-streaming-other-tab)))
+
 (describe "user-facing error conditions"
   ;; Normal situations (no project, no other file, ...) should signal
   ;; `user-error', not `error', so they don't trip the debugger when a user
