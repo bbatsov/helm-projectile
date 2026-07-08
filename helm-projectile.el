@@ -1364,9 +1364,6 @@ When set to `search-tool', the above does not happen."
 (defcustom helm-projectile-grep-or-ack-actions
   '("Find file" helm-grep-action
     "Find file other frame" helm-grep-other-frame
-    (lambda () (and (locate-library "elscreen")
-               "Find file in Elscreen"))
-    helm-grep-jump-elscreen
     "Save results in grep buffer" helm-grep-save-results
     "Find file other window" helm-grep-other-window)
   "Available actions for `helm-projectile-grep-or-ack'.
