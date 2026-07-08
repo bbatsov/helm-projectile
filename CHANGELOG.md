@@ -2,6 +2,8 @@
 
 ## master (unreleased)
 
+## 1.7.0 (2026-07-08)
+
 ### New features
 
 * Add other-tab variants (`helm-projectile-find-file-other-tab`, `helm-projectile-find-dir-other-tab`, `helm-projectile-switch-project-other-tab`), matching Helm 4.x's tab-bar support alongside the existing other-window and other-frame variants. "Open in other tab" is also available as an action (bound to `C-c t`) in the project and directory sources.
@@ -20,6 +22,9 @@
 * Measure test coverage with `undercover` and report it to Codecov from a dedicated (non-blocking) CI job.
 * Raise test coverage from ~34% to ~46%: cover `helm-projectile-ack`'s ignore-argument building and executable detection, the ag/rg default-input helpers, `helm-projectile-remove-known-project`, `helm-projectile-all-dired-buffers`, the `helm-projectile-switch-project-by-name` variants, and the `helm-projectile-dired-files-new-action` virtual-Dired builder.
 * Raise test coverage further to ~55%: cover the `helm-projectile` entry point, `helm-projectile-grep`, `helm-projectile-file-persistent-action`, the `find-file-dwim` / `find-other-file` single-candidate paths, and the `helm-projectile-dired-files-delete-action` virtual-Dired action.
+* Replace the fixed `run-with-timer` delay in `helm-projectile-grep`/`helm-projectile-ack` (used so a search invoked as an action didn't start until the current Helm session tore down) with `helm-run-after-exit` when a session is live, and a direct call otherwise. No more arbitrary 10ms latency on the standalone commands, and the deferral is now explicit.
+* Tidy up top-level dependencies: `require` `grep` from the helpers that actually use `grep-find-ignored-files`/`-directories` (`helm-projectile--ignored-files`/`-directories`) instead of relying on it being pulled in transitively, and drop the unused `helm-locate` and `helm-global-bindings` requires. (No startup-time change - Helm loads all three transitively anyway; this just makes the dependencies honest.)
+* Give every `defcustom` a `:package-version`, so Customize and `M-x customize-changed` can tell users which release each option was introduced in.
 
 ## 1.6.0 (2026-07-01)
 
@@ -44,9 +49,6 @@
 
 ### Internal
 
-* Give every `defcustom` a `:package-version`, so Customize and `M-x customize-changed` can tell users which release each option was introduced in.
-* Replace the fixed `run-with-timer` delay in `helm-projectile-grep`/`helm-projectile-ack` (used so a search invoked as an action didn't start until the current Helm session tore down) with `helm-run-after-exit` when a session is live, and a direct call otherwise. No more arbitrary 10ms latency on the standalone commands, and the deferral is now explicit.
-* Tidy up top-level dependencies: `require` `grep` from the helpers that actually use `grep-find-ignored-files`/`-directories` (`helm-projectile--ignored-files`/`-directories`) instead of relying on it being pulled in transitively, and drop the unused `helm-locate` and `helm-global-bindings` requires. (No startup-time change - Helm loads all three transitively anyway; this just makes the dependencies honest.)
 * Drive `helm-projectile-toggle`'s command remaps from a single table (`helm-projectile--command-remaps`) instead of two hand-maintained copies of ~20 `define-key` calls.
 * Extract the remote virtual-Dired guard duplicated across the three Dired file actions into a `helm-projectile--with-virtual-dired` macro.
 * Sharp-quote (`#'`) function references so the byte-compiler can catch typos in them.
