@@ -63,5 +63,31 @@ touched as an empty file.  Meant to be nested inside
 A `(spy-on \\='helm)' must be active for this to have anything to read."
   (plist-get (spy-calls-args-for 'helm (or n 0)) :sources))
 
+(defun helm-projectile-test--grep-command (&rest args)
+  "Return the `helm-grep-default-command' built by `helm-projectile-grep-or-ack'.
+ARGS are forwarded to it; `helm' is stubbed so nothing is displayed, and
+the ignore strategy is forced to `search-tool' to isolate the command
+string from Projectile's ignore computation."
+  (let (command)
+    (cl-letf (((symbol-function 'helm)
+               (lambda (&rest _) (setq command helm-grep-default-command))))
+      (let ((helm-projectile-ignore-strategy 'search-tool))
+        (apply #'helm-projectile-grep-or-ack args)))
+    command))
+
+(defun helm-projectile-test--ag-command (searcher &optional options)
+  "Return the `helm-grep-ag-command' built by `helm-projectile--ag-1'.
+SEARCHER is what `helm-grep--ag-command' should report (\"ag\", \"pt\" or
+\"rg\").  `helm-grep-ag' is stubbed and the command template reset to a
+plain three-slot string so only the ignore globs vary."
+  (let (command)
+    (cl-letf (((symbol-function 'helm-grep-ag)
+               (lambda (&rest _) (setq command helm-grep-ag-command)))
+              ((symbol-function 'helm-grep--ag-command) (lambda (&rest _) searcher)))
+      (let ((helm-projectile-ignore-strategy 'projectile)
+            (helm-grep-ag-command "ag %s %s %s"))
+        (helm-projectile--ag-1 "/proj/" nil options)))
+    command))
+
 (provide 'helm-projectile-test-helper)
 ;;; helm-projectile-test-helper.el ends here
