@@ -25,6 +25,7 @@
 
 (require 'helm-projectile)
 (require 'buttercup)
+(require 'helm-projectile-test-helper)
 
 (describe "helm-projectile package"
   (it "defines its core entry-point commands"
@@ -75,7 +76,94 @@
     (let ((result (helm-projectile--files-display-real
                    '("a.el" "src/b.el") "/proj/")))
       (expect (mapcar #'cdr result)
-              :to-equal '("/proj/a.el" "/proj/src/b.el")))))
+              :to-equal '("/proj/a.el" "/proj/src/b.el"))))
+
+  (it "keeps the directory component in the display of a nested file"
+    ;; Exercises the `file-name-directory' branch: a file in a subdirectory
+    ;; must keep its directory prefix in the display string, while a
+    ;; top-level file has none.
+    (let ((result (helm-projectile--files-display-real
+                   '("a.el" "src/b.el") "/proj/")))
+      (expect (substring-no-properties (car (nth 0 result))) :not :to-match "/")
+      (expect (substring-no-properties (car (nth 1 result))) :to-match "\\`src/"))))
+
+(describe "helm-projectile-hack-actions"
+  ;; Pure action-list surgery that drives which actions each source offers
+  ;; and in what order; every source's action list is built through it.
+  (let ((base '(("Open" . open-fn) ("Delete" . delete-fn) ("Rename" . rename-fn))))
+
+    (it "deletes an action named by a bare symbol"
+      (expect (helm-projectile-hack-actions base 'delete-fn)
+              :to-equal '(("Open" . open-fn) ("Rename" . rename-fn))))
+
+    (it "substitutes an action's function"
+      (expect (helm-projectile-hack-actions base '(open-fn . identity))
+              :to-equal '(("Open" . identity) ("Delete" . delete-fn) ("Rename" . rename-fn))))
+
+    (it "renames an existing action's description"
+      (expect (helm-projectile-hack-actions base '(open-fn . "Open file"))
+              :to-equal '(("Open file" . open-fn) ("Delete" . delete-fn) ("Rename" . rename-fn))))
+
+    (it "appends a new action for an unknown function"
+      (expect (helm-projectile-hack-actions base '(new-fn . "Brand new"))
+              :to-equal '(("Open" . open-fn) ("Delete" . delete-fn)
+                          ("Rename" . rename-fn) ("Brand new" . new-fn))))
+
+    (it "promotes an action to the front with :make-first"
+      (expect (helm-projectile-hack-actions base '(rename-fn . :make-first))
+              :to-equal '(("Rename" . rename-fn) ("Open" . open-fn) ("Delete" . delete-fn))))
+
+    (it "does not mutate the input action list"
+      (helm-projectile-hack-actions base 'delete-fn '(open-fn . "x") '(rename-fn . :make-first))
+      (expect base
+              :to-equal '(("Open" . open-fn) ("Delete" . delete-fn) ("Rename" . rename-fn))))))
+
+(describe "helm-projectile--wildcard-to-ack-match"
+  ;; Characterization tests: they pin the current glob->ack-regex transform
+  ;; (`.'->`\\.', `?'->`.', `*'->`.*', anchored with ^...$).
+  (it "escapes dots and expands glob wildcards, anchored"
+    (expect (helm-projectile--wildcard-to-ack-match "*.el") :to-equal "^.*\\.el$")
+    (expect (helm-projectile--wildcard-to-ack-match "foo?.txt") :to-equal "^foo.\\.txt$")
+    (expect (helm-projectile--wildcard-to-ack-match "*.min.js") :to-equal "^.*\\.min\\.js$")
+    (expect (helm-projectile--wildcard-to-ack-match "test_*.rb") :to-equal "^test_.*\\.rb$"))
+
+  (it "turns a leading [!...] negation into [^...]"
+    (expect (helm-projectile--wildcard-to-ack-match "[!x].c") :to-equal "^[^x]\\.c$")))
+
+(describe "helm-projectile--move-selection-p"
+  ;; Decides whether the selector should skip past a candidate to reach a
+  ;; real file.  Skip a plain non-existent pattern; stay on a real file or a
+  ;; non-string.
+  (it "returns non-nil for a plain non-existent pattern"
+    (expect (helm-projectile--move-selection-p "no-such-file-xyzzy.qqq") :to-be-truthy))
+
+  (it "returns nil for a non-string selection"
+    (expect (helm-projectile--move-selection-p nil) :not :to-be-truthy)
+    (expect (helm-projectile--move-selection-p 42) :not :to-be-truthy))
+
+  (it "returns nil for an existing file"
+    (helm-projectile-test-with-sandbox
+      (helm-projectile-test-with-files '("real.el")
+        (expect (helm-projectile--move-selection-p (expand-file-name "real.el"))
+                :not :to-be-truthy)))))
+
+(describe "helm-projectile-files-in-current-dired-buffer"
+  ;; Fixture-backed: build a throwaway project on disk and a *virtual* Dired
+  ;; buffer from an explicit file list (the way the dired-files actions do),
+  ;; then assert the helper reads those entries back as truenames.
+  (it "returns the truenames of the files listed in the Dired buffer"
+    (helm-projectile-test-with-sandbox
+      (helm-projectile-test-with-files '("a.el" "b.el")
+        (let ((buf (dired (cons "virtual-dired" '("a.el" "b.el")))))
+          (unwind-protect
+              (with-current-buffer buf
+                (expect (sort (helm-projectile-files-in-current-dired-buffer)
+                              #'string<)
+                        :to-equal
+                        (sort (list (file-truename (expand-file-name "a.el"))
+                                    (file-truename (expand-file-name "b.el")))
+                              #'string<)))
+            (kill-buffer buf)))))))
 
 (describe "helm-projectile streaming file source"
   (it "defines the streaming command and its source"
@@ -114,10 +202,6 @@
     (spy-on 'projectile-maybe-invalidate-cache)
     (spy-on 'projectile-project-name :and-return-value "demo")
     (spy-on 'projectile-prepend-project-name :and-call-fake #'identity))
-
-  (defun helm-projectile-test--sources ()
-    "Return the `:sources' passed to the most recent stubbed `helm' call."
-    (plist-get (spy-calls-args-for 'helm 0) :sources))
 
   (it "defaults to sync"
     (expect helm-projectile-find-file-strategy :to-be 'sync))
