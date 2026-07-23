@@ -2,6 +2,14 @@
 
 ## master (unreleased)
 
+### Bugs fixed
+
+* [#221](https://github.com/bbatsov/helm-projectile/issues/221): Build the search ignores from Projectile's gitignore-style patterns (`projectile-filtering-patterns`), instead of the `projectile-ignored-files-rel`/`projectile-ignored-directories-rel`/`projectile-patterns-to-ignore` path lists that Projectile 3.3 removed.
+
+### Changes
+
+* Require Projectile 3.3.0, which is where the ignore rules became a single list of patterns.
+
 ## 1.7.0 (2026-07-08)
 
 ### New features

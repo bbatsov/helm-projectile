@@ -344,10 +344,11 @@
 (describe "helm-projectile ignore lists"
   ;; The union of Projectile's ignores with the `grep-find-ignored-*'
   ;; defaults feeds every search command; several past bugs lived here.
+  ;; Projectile hands over gitignore-style patterns: a trailing slash means
+  ;; directory-only, a leading `/' or `**/' is an anchoring marker.
   (before-each
-    (spy-on 'projectile-ignored-files-rel :and-return-value '("TAGS" "a.log"))
-    (spy-on 'projectile-ignored-directories-rel
-            :and-return-value '("build" "node_modules")))
+    (spy-on 'projectile-filtering-patterns
+            :and-return-value '(("TAGS" "a.log" "build/" "node_modules/"))))
 
   (it "unions the Projectile and grep ignored files, de-duplicated"
     (let ((grep-find-ignored-files '("*.o" "TAGS")))
@@ -357,7 +358,37 @@
   (it "unions ignored directories as directory names, de-duplicated"
     (let ((grep-find-ignored-directories '(".git" "build")))
       (expect (sort (copy-sequence (helm-projectile--ignored-directories)) #'string<)
-              :to-equal '(".git/" "build/" "node_modules/")))))
+              :to-equal '(".git/" "build/" "node_modules/"))))
+
+  (it "strips the anchoring markers the search tools don't understand"
+    ;; A rule that is nothing but markers ("/" here) is left with no glob at
+    ;; all and drops out.
+    (spy-on 'projectile-filtering-patterns
+            :and-return-value '(("/TAGS" "**/*.log" "/" "/build/" "**/vendor/")))
+    (let ((grep-find-ignored-files nil)
+          (grep-find-ignored-directories nil))
+      (expect (helm-projectile--ignored-files) :to-equal '("TAGS" "*.log"))
+      (expect (helm-projectile--ignored-directories)
+              :to-equal '("build/" "vendor/")))))
+
+(describe "helm-projectile ignore lists, unstubbed"
+  ;; Stubs can't catch API drift - the suite kept passing against a Projectile
+  ;; that had dropped the functions these helpers called (#221).
+  (it "reads what Projectile actually computes for a project"
+    (helm-projectile-test-with-sandbox
+      ;; The matching files exist on disk to pin down that the rules come back
+      ;; as patterns: `*.log' stays a glob instead of expanding to `a.log',
+      ;; which is what the removed path-list API used to hand over.
+      (helm-projectile-test-with-files '("build/" "a.log")
+        (write-region "-build/\n-*.log\n" nil ".projectile" nil 'silent)
+        (let ((projectile-globally-ignored-directories '(".git"))
+              (projectile-globally-ignored-files '("TAGS"))
+              (projectile-globally-ignored-file-suffixes nil)
+              (grep-find-ignored-files nil)
+              (grep-find-ignored-directories nil))
+          (expect (helm-projectile--ignored-files) :to-equal '("TAGS" "*.log"))
+          (expect (helm-projectile--ignored-directories)
+                  :to-equal '(".git/" "build/")))))))
 
 (describe "helm-projectile-grep-or-ack command construction"
   (before-each
@@ -436,8 +467,7 @@
   (before-each
     (spy-on 'projectile-project-root :and-return-value "/proj/")
     (spy-on 'helm-projectile--ignored-directories :and-return-value '("build/"))
-    (spy-on 'helm-projectile--ignored-files :and-return-value '("TAGS"))
-    (spy-on 'projectile-patterns-to-ignore :and-return-value '("*.log")))
+    (spy-on 'helm-projectile--ignored-files :and-return-value '("TAGS")))
 
   (it "detects ack and builds --ignore-dir/--ignore-file arguments"
     (spy-on 'executable-find

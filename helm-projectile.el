@@ -8,7 +8,7 @@
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
 ;; Version: 1.7.0
-;; Package-Requires: ((emacs "28.1") (helm "3.0") (projectile "3.1.0"))
+;; Package-Requires: ((emacs "28.1") (helm "3.0") (projectile "3.3.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -1448,18 +1448,40 @@ When set to `search-tool', the above does not happen."
   "True if the ignore strategy is `projectile'."
   (eq 'projectile helm-projectile-ignore-strategy))
 
+(defun helm-projectile--ignore-glob (pattern)
+  "Turn the gitignore-style PATTERN into a plain glob.
+Projectile anchors a rule to the project root with a leading `/' and
+floats one explicitly with a leading `**/'.  The search tools take plain
+globs with no notion of anchoring, so those markers - and the trailing
+`/' of a directory-only rule - come off."
+  (string-remove-prefix
+   "/" (string-remove-prefix "**/" (string-remove-suffix "/" pattern))))
+
+(defun helm-projectile--ignore-globs (directories)
+  "Return the project's ignore rules as plain globs.
+With DIRECTORIES non-nil return the directory-only rules, otherwise all
+the others.  The rules come from `projectile-filtering-patterns', the
+same list Projectile's own indexing and search commands work from."
+  (cl-remove-if
+   #'string-empty-p
+   (mapcar #'helm-projectile--ignore-glob
+           ;; A trailing slash is how Projectile spells a directory-only rule.
+           (cl-remove-if (lambda (pattern)
+                           (xor directories (string-suffix-p "/" pattern)))
+                         (car (projectile-filtering-patterns))))))
+
 (defun helm-projectile--ignored-files ()
   "Compute ignored files."
   ;; `grep' provides `grep-find-ignored-files'; load it on demand rather than
   ;; at startup, since it is only needed when a search computes ignores.
   (require 'grep)
-  (cl-union (projectile-ignored-files-rel) grep-find-ignored-files
+  (cl-union (helm-projectile--ignore-globs nil) grep-find-ignored-files
             :test #'equal))
 
 (defun helm-projectile--ignored-directories ()
   "Compute ignored directories."
   (require 'grep)
-  (cl-union (mapcar #'file-name-as-directory (projectile-ignored-directories-rel))
+  (cl-union (mapcar #'file-name-as-directory (helm-projectile--ignore-globs t))
             (mapcar #'file-name-as-directory grep-find-ignored-directories)
             :test #'equal))
 
@@ -1637,9 +1659,7 @@ Use `helm-projectile-rg' or `helm-projectile-ag' instead."
                                                    path
                                                    (helm-projectile--wildcard-to-ack-match)
                                                    (shell-quote-argument))))
-                                       (append
-                                        (helm-projectile--ignored-files)
-                                        (projectile-patterns-to-ignore)))
+                                       (helm-projectile--ignored-files))
                                :test #'equal)
                      " ")))
          (helm-ack-grep-executable (cond
